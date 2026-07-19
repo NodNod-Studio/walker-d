@@ -17,6 +17,7 @@ const initialValues = {
 }
 
 const values = reactive({ ...initialValues })
+const phoneTouched = ref(false)
 
 function reset() {
   Object.assign(values, initialValues)
@@ -34,7 +35,6 @@ function applyPreset(preset: typeof presets[number]) {
   Object.assign(values, preset)
 }
 
-const phoneTouched = ref(false)
 const isPhoneValid = computed(() => {
   if (!values.phone)
     return true

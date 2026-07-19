@@ -1,3 +1,4 @@
+import type { Buffer } from 'node:buffer'
 import { createCanvas, GlobalFonts } from '@napi-rs/canvas'
 
 const FONT_FAMILIES = {
