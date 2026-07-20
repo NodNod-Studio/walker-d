@@ -39,7 +39,7 @@ function clampNumber(value: unknown, min: number, max: number, fallback: number)
   return Math.min(Math.max(num, min), max)
 }
 
-export default defineEventHandler(async (event) => {
+const handler = defineEventHandler(async (event) => {
   await registerFonts()
 
   const query = getQuery(event)
@@ -91,4 +91,10 @@ export default defineEventHandler(async (event) => {
   })
 
   return buffer
+})
+
+export default defineCachedEventHandler(handler, {
+  maxAge: 60 * 60 * 24 * 30,
+  swr: true,
+  getKey: event => JSON.stringify(getQuery(event)),
 })
