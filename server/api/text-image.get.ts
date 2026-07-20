@@ -1,4 +1,5 @@
 import type { Buffer } from 'node:buffer'
+import { createHash } from 'node:crypto'
 import { createCanvas, GlobalFonts } from '@napi-rs/canvas'
 
 const FONT_FAMILIES = {
@@ -39,23 +40,8 @@ function clampNumber(value: unknown, min: number, max: number, fallback: number)
   return Math.min(Math.max(num, min), max)
 }
 
-const handler = defineEventHandler(async (event) => {
-  await registerFonts()
-
-  const query = getQuery(event)
-
-  const rawText = Array.isArray(query.text) ? query.text[0] : query.text
-  const text = String(rawText ?? '').trim()
-  if (!text) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing "text" query parameter' })
-  }
-
-  const weightKey: keyof typeof FONT_FAMILIES = query.weight === 'bold' ? 'bold' : 'regular'
+function renderTextImage(text: string, weightKey: keyof typeof FONT_FAMILIES, fontSize: number, lineHeight: number, scale: number) {
   const family = FONT_FAMILIES[weightKey]
-
-  const fontSize = clampNumber(query.fontSize, 8, 72, 16)
-  const lineHeight = clampNumber(query.lineHeight, 0.8, 3, 1.2)
-  const scale = clampNumber(query.scale, 1, 4, 3)
 
   const lines = text
     .split('\n')
@@ -83,18 +69,39 @@ const handler = defineEventHandler(async (event) => {
     ctx.fillText(line, 0, i * lineHeightPx)
   })
 
-  const buffer = canvas.toBuffer('image/png')
+  return canvas.toBuffer('image/png')
+}
+
+export default defineEventHandler(async (event) => {
+  await registerFonts()
+
+  const query = getQuery(event)
+
+  const rawText = Array.isArray(query.text) ? query.text[0] : query.text
+  const text = String(rawText ?? '').trim()
+  if (!text) {
+    throw createError({ statusCode: 400, statusMessage: 'Missing "text" query parameter' })
+  }
+
+  const weightKey: keyof typeof FONT_FAMILIES = query.weight === 'bold' ? 'bold' : 'regular'
+  const fontSize = clampNumber(query.fontSize, 8, 72, 16)
+  const lineHeight = clampNumber(query.lineHeight, 0.8, 3, 1.2)
+  const scale = clampNumber(query.scale, 1, 4, 3)
 
   setResponseHeaders(event, {
     'Content-Type': 'image/png',
     'Cache-Control': 'public, max-age=31536000, immutable',
   })
 
-  return buffer
-})
+  const cacheKey = createHash('sha1').update(`${weightKey}:${fontSize}:${lineHeight}:${scale}:${text}`).digest('hex')
+  const cache = useStorage('cache')
 
-export default defineCachedEventHandler(handler, {
-  maxAge: 60 * 60 * 24 * 30,
-  swr: true,
-  getKey: event => JSON.stringify(getQuery(event)),
+  const cached = await cache.getItemRaw<Buffer>(`text-image:${cacheKey}.png`)
+  if (cached)
+    return cached
+
+  const buffer = renderTextImage(text, weightKey, fontSize, lineHeight, scale)
+  await cache.setItemRaw(`text-image:${cacheKey}.png`, buffer)
+
+  return buffer
 })
