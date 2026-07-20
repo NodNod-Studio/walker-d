@@ -71,7 +71,7 @@ const spacerImg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAA
         </td>
       </tr>
       <tr>
-        <td valign="top" width="130" style="padding:0 100px 0 0;max-width:130px;">
+        <td valign="top" width="130" style="padding:0 32px 0 0;max-width:130px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
             <tbody>
               <tr v-for="(row, i) in leftRows" :key="i">
