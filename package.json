@@ -2,6 +2,7 @@
   "name": "wd-signature",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.13.1",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
