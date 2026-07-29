@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { OfficeKey } from '~/composables/useBrandImage'
 import { isValidPhoneNumber } from 'libphonenumber-js'
 
 useSeoMeta({
@@ -9,11 +10,12 @@ useSeoMeta({
 const { textImageUrl } = useTextImageUrl()
 const wordmarkImg = textImageUrl(COMPANY.wordmark, { weight: 'bold', fontSize: 22 })
 
-const initialValues = {
+const initialValues: { fullname: string, role: string, email: string, cellPhone: string, office: OfficeKey } = {
   fullname: '',
   role: '',
   email: '',
-  phone: '',
+  cellPhone: '',
+  office: 'LA',
 }
 
 const values = reactive({ ...initialValues })
@@ -24,23 +26,12 @@ function reset() {
   phoneTouched.value = false
 }
 
-const presets = [
-  { fullname: 'Adam Drawas', role: 'Owner', email: 'adam@walkerdrawas.com', phone: '310.854.6700' },
-  { fullname: 'Jennifer Walker', role: 'Owner', email: 'jennifer@walkerdrawas.com', phone: '310.854.6700' },
-  { fullname: 'Andia Knox', role: 'Senior Vice President', email: 'andia@walkerdrawas.com', phone: '310.854.6700' },
-  { fullname: 'Courtney Prosniewski', role: 'Senior Account Manager', email: 'courtney@walkerdrawas.com', phone: '310.854.6700' },
-] as const
-
-function applyPreset(preset: typeof presets[number]) {
-  Object.assign(values, preset)
-}
-
 const isPhoneValid = computed(() => {
-  if (!values.phone)
+  if (!values.cellPhone)
     return true
-  return values.phone.trim().startsWith('+')
-    ? isValidPhoneNumber(values.phone)
-    : isValidPhoneNumber(values.phone, 'US')
+  return values.cellPhone.trim().startsWith('+')
+    ? isValidPhoneNumber(values.cellPhone)
+    : isValidPhoneNumber(values.cellPhone, 'US')
 })
 
 const copyAutoReset = refAutoReset(false, 2000)
@@ -118,34 +109,41 @@ function downloadSignature() {
     </header>
 
     <div class="container">
-      <div class="presets">
-        <p class="presets-label">
-          Quick fill:
-        </p>
-        <div class="presets-group">
-          <Button
-            v-for="preset in presets"
-            :key="preset.email"
-            @click="applyPreset(preset)"
-          >
-            {{ preset.fullname }}
-          </Button>
-        </div>
-      </div>
-
       <form class="form" novalidate @submit.prevent>
         <div class="grid">
           <TextField v-model="values.fullname" label="Full Name" />
           <TextField v-model="values.role" label="Role" />
           <TextField v-model="values.email" label="Email" type="email" />
           <TextField
-            v-model="values.phone"
-            label="Phone"
+            v-model="values.cellPhone"
+            label="Cell Phone"
             type="tel"
             placeholder="310.123.4567"
             :error="phoneTouched && !isPhoneValid ? 'Enter a valid US number, or an international number starting with +' : undefined"
             @blur="phoneTouched = true"
           />
+        </div>
+
+        <div class="office-field">
+          <p class="office-label">
+            Office:
+          </p>
+          <div class="office-group">
+            <Button
+              type="button"
+              :theme="values.office === 'LA' ? 'primary' : 'secondary'"
+              @click="values.office = 'LA'"
+            >
+              LA
+            </Button>
+            <Button
+              type="button"
+              :theme="values.office === 'NY' ? 'primary' : 'secondary'"
+              @click="values.office = 'NY'"
+            >
+              NY
+            </Button>
+          </div>
         </div>
       </form>
 
@@ -159,7 +157,8 @@ function downloadSignature() {
             :fullname="values.fullname"
             :role="values.role"
             :email="values.email"
-            :phone="values.phone"
+            :cell-phone="values.cellPhone"
+            :office="values.office"
           />
         </div>
       </div>
@@ -234,23 +233,6 @@ function downloadSignature() {
   width: auto;
 }
 
-.presets {
-  margin-bottom: 1.5rem;
-}
-
-.presets-label {
-  font-size: 0.75rem;
-
-  color: rgba(17, 17, 17, 0.55);
-  margin: 0 0 0.5rem;
-}
-
-.presets-group {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
 .container {
   max-width: 960px;
   width: 100%;
@@ -262,6 +244,22 @@ function downloadSignature() {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem 0.75rem;
+}
+
+.office-field {
+  margin-top: 1rem;
+}
+
+.office-label {
+  font-size: 0.75rem;
+
+  color: rgba(17, 17, 17, 0.55);
+  margin: 0 0 0.5rem;
+}
+
+.office-group {
+  display: flex;
+  gap: 0.5rem;
 }
 
 @media (min-width: 768px) {
