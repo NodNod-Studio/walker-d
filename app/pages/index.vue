@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import type { OfficeKey } from '~/composables/useBrandImage'
-import { isValidPhoneNumber } from 'libphonenumber-js'
-
 useSeoMeta({
   robots: 'noindex, nofollow',
   title: 'Walker•Drawas Signature Generator',
@@ -10,29 +7,16 @@ useSeoMeta({
 const { textImageUrl } = useTextImageUrl()
 const wordmarkImg = textImageUrl(COMPANY.wordmark, { weight: 'bold', fontSize: 22 })
 
-const initialValues: { fullname: string, role: string, email: string, cellPhone: string, office: OfficeKey } = {
+const initialValues: { fullname: string, role: string } = {
   fullname: '',
   role: '',
-  email: '',
-  cellPhone: '',
-  office: 'LA',
 }
 
 const values = reactive({ ...initialValues })
-const phoneTouched = ref(false)
 
 function reset() {
   Object.assign(values, initialValues)
-  phoneTouched.value = false
 }
-
-const isPhoneValid = computed(() => {
-  if (!values.cellPhone)
-    return true
-  return values.cellPhone.trim().startsWith('+')
-    ? isValidPhoneNumber(values.cellPhone)
-    : isValidPhoneNumber(values.cellPhone, 'US')
-})
 
 const copyAutoReset = refAutoReset(false, 2000)
 const copyAutoResetHtml = refAutoReset(false, 2000)
@@ -113,37 +97,6 @@ function downloadSignature() {
         <div class="grid">
           <TextField v-model="values.fullname" label="Full Name" />
           <TextField v-model="values.role" label="Role" />
-          <TextField v-model="values.email" label="Email" type="email" />
-          <TextField
-            v-model="values.cellPhone"
-            label="Cell Phone"
-            type="tel"
-            placeholder="310.123.4567"
-            :error="phoneTouched && !isPhoneValid ? 'Enter a valid US number, or an international number starting with +' : undefined"
-            @blur="phoneTouched = true"
-          />
-        </div>
-
-        <div class="office-field">
-          <p class="office-label">
-            Office:
-          </p>
-          <div class="office-group">
-            <Button
-              type="button"
-              :theme="values.office === 'LA' ? 'primary' : 'secondary'"
-              @click="values.office = 'LA'"
-            >
-              LA
-            </Button>
-            <Button
-              type="button"
-              :theme="values.office === 'NY' ? 'primary' : 'secondary'"
-              @click="values.office = 'NY'"
-            >
-              NY
-            </Button>
-          </div>
         </div>
       </form>
 
@@ -156,9 +109,6 @@ function downloadSignature() {
             class="sign"
             :fullname="values.fullname"
             :role="values.role"
-            :email="values.email"
-            :cell-phone="values.cellPhone"
-            :office="values.office"
           />
         </div>
       </div>
@@ -244,22 +194,6 @@ function downloadSignature() {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem 0.75rem;
-}
-
-.office-field {
-  margin-top: 1rem;
-}
-
-.office-label {
-  font-size: 0.75rem;
-
-  color: rgba(17, 17, 17, 0.55);
-  margin: 0 0 0.5rem;
-}
-
-.office-group {
-  display: flex;
-  gap: 0.5rem;
 }
 
 @media (min-width: 768px) {
