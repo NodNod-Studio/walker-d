@@ -3,7 +3,7 @@ export const COMPANY = {
   offices: {
     LA: {
       label: 'LA',
-      phone: '310.854.6999',
+      phone: '310.854.6700',
       addressLine1: '8057 Beverly Blvd., Suite 100',
       addressLine2: 'Los Angeles, CA, 90048',
     },
