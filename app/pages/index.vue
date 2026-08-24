@@ -21,10 +21,44 @@ function reset() {
 const copyAutoReset = refAutoReset(false, 2000)
 const copyAutoResetHtml = refAutoReset(false, 2000)
 
-function copySignature() {
+async function toDataUrl(url: string): Promise<string> {
+  const response = await fetch(url)
+  const blob = await response.blob()
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(blob)
+  })
+}
+
+async function embedImages(el: HTMLElement) {
+  const imgs = Array.from(el.querySelectorAll('img')).filter(img => !img.src.startsWith('data:'))
+  const uniqueSrcs = [...new Set(imgs.map(img => img.src))]
+
+  const entries = await Promise.all(uniqueSrcs.map(async (src) => {
+    try {
+      return [src, await toDataUrl(src)] as const
+    }
+    catch (err) {
+      console.error(`Failed to inline image: ${src}`, err)
+      return null
+    }
+  }))
+
+  const dataUrlBySrc = new Map(entries.filter(entry => entry !== null))
+  imgs.forEach((img) => {
+    const dataUrl = dataUrlBySrc.get(img.src)
+    if (dataUrl)
+      img.src = dataUrl
+  })
+}
+
+async function copySignature() {
   const el = document.querySelector('.sign') as HTMLElement
   if (!el)
     return
+  await embedImages(el)
   const range = document.createRange()
   range.selectNodeContents(el)
   const sel = window.getSelection()
@@ -57,10 +91,11 @@ const tail = `
   </html>
 `
 
-function copyHtmlSignature() {
+async function copyHtmlSignature() {
   const el = document.querySelector('.sign') as HTMLElement
   if (!el)
     return
+  await embedImages(el)
   const html = el.innerHTML
   const wrappedHtml = head + html + tail
   navigator.clipboard.writeText(wrappedHtml).then(() => {
@@ -70,10 +105,11 @@ function copyHtmlSignature() {
   })
 }
 
-function downloadSignature() {
+async function downloadSignature() {
   const el = document.querySelector('.sign') as HTMLElement
   if (!el)
     return
+  await embedImages(el)
   const html = el.innerHTML
   const wrappedHtml = head + html + tail
   const blob = new Blob([wrappedHtml], { type: 'text/html' })
