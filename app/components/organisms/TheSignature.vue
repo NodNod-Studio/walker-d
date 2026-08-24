@@ -24,20 +24,20 @@ const showNameRow = computed(() => !!(props.fullname || props.role))
 const laPhoneText = `O: ${officePhoneDisplay(COMPANY.offices.LA.phone)}`
 const nyPhoneText = `O: ${officePhoneDisplay(COMPANY.offices.NY.phone)}`
 
-const wordmarkImg = useTextImageDataUrl(COMPANY.wordmark, { weight: 'bold', fontSize: 28 })
-const fullnameImg = useTextImageDataUrl(() => props.fullname, { weight: 'bold', fontSize: 13 })
-const roleImg = useTextImageDataUrl(() => props.role, { weight: 'bold', fontSize: 13 })
+const wordmarkImg = useTextImageSrc(COMPANY.wordmark, { weight: 'bold', fontSize: 28 })
+const fullnameImg = useTextImageSrc(() => props.fullname, { weight: 'bold', fontSize: 13 })
+const roleImg = useTextImageSrc(() => props.role, { weight: 'bold', fontSize: 13 })
 
-const laAddressLine1Img = useTextImageDataUrl(COMPANY.offices.LA.addressLine1, { fontSize: 13 })
-const laAddressLine2Img = useTextImageDataUrl(COMPANY.offices.LA.addressLine2, { fontSize: 13 })
-const laPhoneImg = useTextImageDataUrl(laPhoneText, { fontSize: 13 })
+const laAddressLine1Img = useTextImageSrc(COMPANY.offices.LA.addressLine1, { fontSize: 13 })
+const laAddressLine2Img = useTextImageSrc(COMPANY.offices.LA.addressLine2, { fontSize: 13 })
+const laPhoneImg = useTextImageSrc(laPhoneText, { fontSize: 13 })
 
-const nyAddressLine1Img = useTextImageDataUrl(COMPANY.offices.NY.addressLine1, { fontSize: 13 })
-const nyAddressLine2Img = useTextImageDataUrl(COMPANY.offices.NY.addressLine2, { fontSize: 13 })
-const nyPhoneImg = useTextImageDataUrl(nyPhoneText, { fontSize: 13 })
+const nyAddressLine1Img = useTextImageSrc(COMPANY.offices.NY.addressLine1, { fontSize: 13 })
+const nyAddressLine2Img = useTextImageSrc(COMPANY.offices.NY.addressLine2, { fontSize: 13 })
+const nyPhoneImg = useTextImageSrc(nyPhoneText, { fontSize: 13 })
 
-const domainImg = useTextImageDataUrl(COMPANY.domain, { fontSize: 13 })
-const handleImg = useTextImageDataUrl(COMPANY.handle, { fontSize: 13 })
+const domainImg = useTextImageSrc(COMPANY.domain, { fontSize: 13 })
+const handleImg = useTextImageSrc(COMPANY.handle, { fontSize: 13 })
 
 const spacerImg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
 

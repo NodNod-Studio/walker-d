@@ -84,34 +84,8 @@ export function textImageStyle(width: ComputedRef<number | undefined>, height: n
   return computed(() => `display:block;border:0;height:${height}px;${width.value ? `width:${width.value}px;` : ''}`)
 }
 
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  if (typeof Buffer !== 'undefined')
-    return Buffer.from(buffer).toString('base64')
-
-  let binary = ''
-  const bytes = new Uint8Array(buffer)
-  const chunkSize = 0x8000
-  for (let i = 0; i < bytes.length; i += chunkSize)
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
-
-  return btoa(binary)
-}
-
-export function useTextImageDataUrl(text: MaybeRefOrGetter<string>, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number }) {
+/** <img> src pointing straight at /api/text-image, no client-side fetch/base64 step. */
+export function useTextImageSrc(text: MaybeRefOrGetter<string>, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number }) {
   const { textImageUrl } = useTextImageUrl()
-
-  const url = computed(() => textImageUrl(toValue(text), opts))
-
-  const { data } = useAsyncData(
-    () => `text-image-data-url:${url.value}`,
-    async () => {
-      if (!url.value)
-        return ''
-      const buffer = await $fetch<ArrayBuffer>(url.value, { responseType: 'arrayBuffer' })
-      return `data:image/png;base64,${arrayBufferToBase64(buffer)}`
-    },
-    { watch: [url] },
-  )
-
-  return computed(() => data.value ?? '')
+  return computed(() => textImageUrl(toValue(text), opts))
 }
