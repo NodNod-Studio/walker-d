@@ -31,12 +31,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing "text" query parameter' })
   }
 
+  const cacheKey = createHash('sha1').update(`${weightKey}:${fontSize}:${lineHeight}:${scale}:${text}`).digest('hex')
+
   setResponseHeaders(event, {
     'Content-Type': 'image/png',
+    'Content-Disposition': `inline; filename="text-${cacheKey}.png"`,
     'Cache-Control': 'public, max-age=31536000, immutable',
   })
 
-  const cacheKey = createHash('sha1').update(`${weightKey}:${fontSize}:${lineHeight}:${scale}:${text}`).digest('hex')
   const cache = useStorage('cache')
 
   const cached = await cache.getItemRaw<Buffer>(`text-image:${cacheKey}.png`)
