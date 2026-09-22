@@ -62,7 +62,7 @@ async function copyHtmlSignature() {
   const el = document.querySelector('.sign') as HTMLElement
   if (!el)
     return
-  const html = el.innerHTML
+  const html = el.outerHTML
   const wrappedHtml = head + html + tail
   navigator.clipboard.writeText(wrappedHtml).then(() => {
     copyAutoResetHtml.value = true
@@ -75,7 +75,7 @@ async function downloadSignature() {
   const el = document.querySelector('.sign') as HTMLElement
   if (!el)
     return
-  const html = el.innerHTML
+  const html = el.outerHTML
   const wrappedHtml = head + html + tail
   const blob = new Blob([wrappedHtml], { type: 'text/html' })
   const url = URL.createObjectURL(blob)
