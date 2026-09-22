@@ -89,3 +89,13 @@ export function useTextImageSrc(text: MaybeRefOrGetter<string>, opts: { weight?:
   const { textImageUrl } = useTextImageUrl()
   return computed(() => textImageUrl(toValue(text), opts))
 }
+
+/**
+ * 1x1 transparent PNG served as a static file, not a base64 data URI:
+ * Outlook desktop doesn't render base64-encoded GIFs, and a failed spacer
+ * would collapse the row height it's meant to preserve.
+ */
+export function useSpacerImageSrc() {
+  const origin = useRequestURL().origin
+  return `${origin}/spacer.png`
+}

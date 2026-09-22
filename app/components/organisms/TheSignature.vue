@@ -39,7 +39,7 @@ const nyPhoneImg = useTextImageSrc(nyPhoneText, { fontSize: 13 })
 const domainImg = useTextImageSrc(COMPANY.domain, { fontSize: 13 })
 const handleImg = useTextImageSrc(COMPANY.handle, { fontSize: 13 })
 
-const spacerImg = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
+const spacerImg = useSpacerImageSrc()
 
 const wordmarkWidth = useTextImageWidth(COMPANY.wordmark, { weight: 'bold', fontSize: 28, displayHeight: 39 })
 
