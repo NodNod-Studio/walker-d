@@ -49,6 +49,17 @@ const head = `<!doctype html>
     <head>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+        a { text-decoration: none; }
+        a img { border: 0; outline: none; }
+      </style>
+      <!--[if mso]>
+      <style>
+        img { border: 0 !important; }
+        a img { border: 0 !important; }
+      </style>
+      <![endif]-->
     </head>
     <body>
 `
