@@ -131,24 +131,24 @@ const handleStyle = textImageStyle(handleWidth, 11)
       </tr>
       <tr>
         <td valign="top" style="padding:0 0 10px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
-          <a :href="officePhoneHref(COMPANY.offices.LA.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;">
+          <a :href="officePhoneHref(COMPANY.offices.LA.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
             <img :src="laPhoneImg" :width="laPhoneWidth" height="11" :alt="laPhoneText" border="0" :style="laPhoneStyle">
           </a>
         </td>
         <td valign="top" style="padding:0 0 10px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
-          <a :href="officePhoneHref(COMPANY.offices.NY.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;">
+          <a :href="officePhoneHref(COMPANY.offices.NY.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
             <img :src="nyPhoneImg" :width="nyPhoneWidth" height="11" :alt="nyPhoneText" border="0" :style="nyPhoneStyle">
           </a>
         </td>
       </tr>
       <tr>
         <td valign="top" style="padding:0 0 0 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
-          <a :href="`https://${COMPANY.domain}`" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;">
+          <a :href="`https://${COMPANY.domain}`" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
             <img :src="domainImg" :width="domainWidth" height="11" :alt="COMPANY.domain" border="0" :style="domainStyle">
           </a>
         </td>
         <td valign="top" style="padding:0 0 0 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
-          <a :href="COMPANY.instagramUrl" target="_blank" rel="noopener noreferrer" border="0" style="text-decoration:none;border:0;outline:none;">
+          <a :href="COMPANY.instagramUrl" target="_blank" rel="noopener noreferrer" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
             <img :src="handleImg" :width="handleWidth" height="11" :alt="COMPANY.handle" border="0" :style="handleStyle">
           </a>
         </td>

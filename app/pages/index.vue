@@ -52,6 +52,7 @@ const head = `<!doctype html>
       <style>
         img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
         a { text-decoration: none; }
+        td { font-size: 0; line-height: 0; mso-line-height-rule: exactly; }
         a img { border: 0; outline: none; }
       </style>
       <!--[if mso]>
