@@ -80,6 +80,15 @@ Perché:
   dell'immagine. Word taglia la parte alta dell'immagine (era il bug originale,
   con `line-height:0`).
 
+**Eccezione: dentro le celle della tabella.** Lì Word **non** mantiene
+`line-height:1pt`: lo trasforma in `mso-line-height-alt:1.0pt`, che i browser
+ignorano, e le righe dei link tornano all'interlinea "normale" (su Gmail mobile lo
+spazio è ancora più grande, perché l'app ingrandisce il testo). Nelle celle si usa
+quindi l'interlinea **esatta uguale all'immagine**
+(`mso-line-height-rule:exactly;line-height:8.25pt` per 11px), che Word mantiene.
+Con immagini piccole lo spazio aggiunto dal browser è al massimo ~2px. Con immagini
+alte no (vedi sopra), per questo il blocco in alto resta a `1pt`.
+
 ## 5. Margini dei paragrafi: `.05pt`, non `0`
 
 Word **non scrive** sul paragrafo i margini uguali allo stile Normale. Con
@@ -91,6 +100,10 @@ nell'`<head>` dell'email (`p.MsoNormal { margin:0 }`). I client che ignorano que
 Per questo i margini sono `.05pt` sopra e sotto, cioè 1 twip, il passo minimo di
 Word: sono diversi dallo stile Normale, quindi Word li scrive inline, ma a video
 sono invisibili (~0.07px).
+
+Vanno scritti con le proprietà singole (`margin-top`, `margin-bottom`, …): con lo
+shorthand `margin:` Word ha trasformato quello superiore in `mso-margin-top-alt`,
+che i browser ignorano.
 
 > Da verificare nel prossimo `.eml`: il `<p>` deve avere `margin-top:.05pt` /
 > `margin-bottom:.05pt` (o equivalente) nello `style`.

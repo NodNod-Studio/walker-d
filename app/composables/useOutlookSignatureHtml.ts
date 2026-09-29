@@ -56,26 +56,36 @@ function image({ src, width, height, alt, href }: OutlookImage) {
  * drop the <head> styles (e.g. the Gmail app) then fall back to the default ~1em
  * paragraph margins; a non-zero value forces Word to write the margins inline.
  */
-const PARAGRAPH_MARGIN = '.05pt 0 .05pt 0'
+// Longhands: with the `margin` shorthand Word wrote the top one as
+// `mso-margin-top-alt`, which browsers ignore.
+const PARAGRAPH_MARGIN = 'margin-top:.05pt;margin-right:0;margin-bottom:.05pt;margin-left:0;'
 
 /**
- * `line-height:1pt` with no `mso-line-height-rule`, which Word reads as "at
- * least 1pt": the line still grows to fit the image, so nothing is cropped.
- * Browsers instead size the line from the paragraph's own font (Outlook's 11pt
- * `p.MsoNormal`; Word moves our font-size onto an inner span) and centre that
- * font in the line height: with a 1pt line there's no room left for descender
- * space under the image, so each row is exactly as tall as its image.
- * An *exact* line height the size of the image did the opposite: browsers put
- * half of the leftover height under the baseline, i.e. under the image
- * (~28px under the 64px header).
+ * Browsers size each line from the paragraph's own font (Outlook's 11pt
+ * `p.MsoNormal`, scaled up further by the Gmail app; Word moves our font-size
+ * onto an inner span), which leaves descender space under the image. How the
+ * line height is set to avoid that depends on where the paragraph is, because
+ * Word keeps different things:
+ *
+ * - `line-height:1pt` with no `mso-line-height-rule` (Word: "at least 1pt", so
+ *   nothing is cropped; browsers: no room left under the image). Word keeps it
+ *   on a top-level paragraph, but *inside table cells* turns it into
+ *   `mso-line-height-alt`, which browsers ignore.
+ * - exact line height = image height. Word keeps it in cells and doesn't crop
+ *   (it only does when the line is shorter than the image). Only fine for small
+ *   images: browsers put half of the leftover line height under the baseline,
+ *   ~28px under the 64px header, but at most ~2px under an 11px link.
  */
-function paragraph(content: string) {
-  return `<p class="MsoNormal" style="margin:${PARAGRAPH_MARGIN};font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;">${content}</p>`
+function paragraph(content: string, exactLineHeight?: number) {
+  const lineHeight = exactLineHeight
+    ? `mso-line-height-rule:exactly;line-height:${pt(exactLineHeight)};`
+    : 'line-height:1.0pt;'
+  return `<p class="MsoNormal" style="${PARAGRAPH_MARGIN}font-size:1.0pt;${lineHeight}font-family:Arial,sans-serif;">${content}</p>`
 }
 
 function cell(content: string, width: number | undefined, paddingBottom = 0) {
   const style = `${width ? `width:${pt(width)};` : ''}padding:0 0 ${pt(paddingBottom)} 0;border:none;`
-  return `<td valign="top" style="${style}">${paragraph(content)}</td>`
+  return `<td valign="top" style="${style}">${paragraph(content, LINK_HEIGHT)}</td>`
 }
 
 const TEXT_LINE_HEIGHT = 1.2
