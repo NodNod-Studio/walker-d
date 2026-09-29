@@ -39,20 +39,29 @@ browser: Chrome aggiunge gli stili calcolati e toglie le proprietà che non cono
 Il pulsante usa un evento `copy` con `clipboardData.setData('text/html', html)`
 (`copyRawHtml`), che mette negli appunti la stringa esattamente com'è.
 
-## 3. Meno paragrafi possibile
+## 3. Un solo paragrafo, righe separate da `<br>`
 
-In ogni client basato su browser (Gmail, Apple Mail, ecc.) ogni paragrafo può
-aggiungere spazio sotto la sua immagine. Quindi la firma usa il minor numero di
-paragrafi possibile:
+Tutta la firma è **un unico paragrafo**, con le righe separate da `<br>`:
 
 1. **una sola immagine** per tutto ciò che non ha link: wordmark, nome/ruolo,
    indirizzi (`/api/signature-image?part=header`);
-2. **una tabella 2×2** per i testi cliccabili: telefoni, poi sito + Instagram.
+2. telefono LA + telefono NY (link);
+3. un'immagine trasparente alta 4px, per lo spazio tra telefoni e sito;
+4. sito + Instagram (link).
 
-Perché una tabella e non due immagini affiancate: i browser possono andare a capo
-tra due immagini inline, e Word toglie `white-space:nowrap`. La prima colonna è
-larga quanto il prefisso "WALKER • " + 10px (`nyX`), così la seconda colonna
-parte sotto "DRAWAS".
+Perché un solo paragrafo: Word non scrive mai un vero margine superiore sui
+paragrafi (vedi sezione 5), e i client che ignorano lo `<style>` di Outlook (la
+app Gmail) danno a ogni paragrafo un margine di default di ~1em. Con un paragrafo
+per riga, o con una tabella (un paragrafo per cella), quel margine finisce tra le
+righe. Le righe dentro lo stesso paragrafo invece non hanno margini.
+
+L'immagine di sinistra delle righe 2 e 4 è allungata con spazio trasparente fino
+all'inizio della colonna NY (`minWidth` = prefisso "WALKER • " + 10px, `nyX`),
+così quella di destra parte sotto "DRAWAS". Tra le due immagini non ci deve essere
+nessuno spazio nell'HTML, altrimenti diventa uno spazio visibile.
+
+> Storia: una versione con una tabella 2×2 per i link funzionava su desktop, ma
+> sulla app Gmail ogni riga aveva ~1em di spazio sopra.
 
 ## 4. L'altezza delle righe: `line-height:1pt` senza regola `mso`
 
@@ -80,14 +89,11 @@ Perché:
   dell'immagine. Word taglia la parte alta dell'immagine (era il bug originale,
   con `line-height:0`).
 
-**Eccezione: dentro le celle della tabella.** Lì Word **non** mantiene
+**Attenzione alle tabelle.** Dentro le celle Word **non** mantiene
 `line-height:1pt`: lo trasforma in `mso-line-height-alt:1.0pt`, che i browser
-ignorano, e le righe dei link tornano all'interlinea "normale" (su Gmail mobile lo
-spazio è ancora più grande, perché l'app ingrandisce il testo). Nelle celle si usa
-quindi l'interlinea **esatta uguale all'immagine**
-(`mso-line-height-rule:exactly;line-height:8.25pt` per 11px), che Word mantiene.
-Con immagini piccole lo spazio aggiunto dal browser è al massimo ~2px. Con immagini
-alte no (vedi sopra), per questo il blocco in alto resta a `1pt`.
+ignorano, e le righe tornano all'interlinea "normale". Nelle celle funziona solo
+l'interlinea esatta uguale all'immagine (`mso-line-height-rule:exactly`), che però
+non risolve i margini (sezione 5). Anche per questo la firma non usa tabelle.
 
 ## 5. Margini dei paragrafi: `.05pt`, non `0`
 
@@ -101,9 +107,11 @@ Per questo i margini sono `.05pt` sopra e sotto, cioè 1 twip, il passo minimo d
 Word: sono diversi dallo stile Normale, quindi Word li scrive inline, ma a video
 sono invisibili (~0.07px).
 
-Vanno scritti con le proprietà singole (`margin-top`, `margin-bottom`, …): con lo
-shorthand `margin:` Word ha trasformato quello superiore in `mso-margin-top-alt`,
-che i browser ignorano.
+**Limite:** Word scrive davvero solo il margine **inferiore**
+(`margin-bottom:.05pt`). Quello superiore lo trasforma sempre in
+`mso-margin-top-alt:.05pt`, che i browser ignorano, sia con lo shorthand `margin:`
+sia con `margin-top`. Per questo la firma è un solo paragrafo (sezione 3): il
+margine superiore di default c'è solo una volta, prima della firma.
 
 > Da verificare nel prossimo `.eml`: il `<p>` deve avere `margin-top:.05pt` /
 > `margin-bottom:.05pt` (o equivalente) nello `style`.
@@ -143,8 +151,10 @@ Nell'HTML generato tutte le misure sono stili in `pt`, senza attributi
 
 ## Problemi aperti
 
-- Spazio in più prima della riga dei telefoni.
-- Su Gmail mobile, righe molto distanti.
-
-Entrambi dovrebbero essere risolti dai margini `.05pt` (sezione 5), se la causa è
-lo `<style>` dell'`<head>` ignorato. Da confermare con un nuovo `.eml`.
+- Su Gmail mobile le righe dei link erano molto distanti: causa confermata (margine
+  superiore di default su ogni paragrafo, sezione 5). La versione a paragrafo unico
+  (sezione 3) è da verificare su mobile.
+- Le righe vuote che Outlook mette **prima** della firma (`<p>&nbsp;</p>`) su
+  mobile sono più alte: sono di Outlook, non della firma.
+- Con immagini affiancate in linea, un client molto stretto potrebbe mandare a
+  capo l'immagine di destra (la riga è larga ~250px).

@@ -2,10 +2,12 @@ import type { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
 import { createCanvas } from '@napi-rs/canvas'
 
-function renderTextImage(text: string, weightKey: WeightKey, fontSize: number, lineHeight: number, scale: number) {
+function renderTextImage(text: string, weightKey: WeightKey, fontSize: number, lineHeight: number, scale: number, minWidth: number) {
   const family = FONT_FAMILIES[weightKey]
   const lines = normalizeLines(text)
-  const { width, height, lineHeightPx } = measureTextBox(lines, family, fontSize, lineHeight)
+  const box = measureTextBox(lines, family, fontSize, lineHeight)
+  const { height, lineHeightPx } = box
+  const width = Math.max(box.width, minWidth)
 
   const canvas = createCanvas(Math.ceil(width * scale), Math.ceil(height * scale))
   const ctx = canvas.getContext('2d')
@@ -25,13 +27,13 @@ export default defineEventHandler(async (event) => {
   await registerFonts()
 
   const query = getQuery(event)
-  const { text, weightKey, fontSize, lineHeight, scale } = parseTextQuery(query)
+  const { text, weightKey, fontSize, lineHeight, scale, minWidth } = parseTextQuery(query)
 
   if (!text) {
     throw createError({ statusCode: 400, statusMessage: 'Missing "text" query parameter' })
   }
 
-  const cacheKey = createHash('sha1').update(`${weightKey}:${fontSize}:${lineHeight}:${scale}:${text}`).digest('hex')
+  const cacheKey = createHash('sha1').update(`${weightKey}:${fontSize}:${lineHeight}:${scale}:${minWidth}:${text}`).digest('hex')
 
   setResponseHeaders(event, {
     'Content-Type': 'image/png',
@@ -45,7 +47,7 @@ export default defineEventHandler(async (event) => {
   if (cached)
     return cached
 
-  const buffer = renderTextImage(text, weightKey, fontSize, lineHeight, scale)
+  const buffer = renderTextImage(text, weightKey, fontSize, lineHeight, scale, minWidth)
   await cache.setItemRaw(`text-image:${cacheKey}.png`, buffer)
 
   return buffer

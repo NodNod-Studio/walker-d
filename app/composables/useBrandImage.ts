@@ -1,7 +1,7 @@
 export function useTextImageUrl() {
   const origin = useRequestURL().origin
 
-  function textImageUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number }) {
+  function textImageUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number, minWidth?: number }) {
     if (!text)
       return ''
 
@@ -12,6 +12,9 @@ export function useTextImageUrl() {
       lineHeight: String(opts.lineHeight ?? 1.2),
       scale: String(opts.scale ?? 2),
     })
+
+    if (opts.minWidth)
+      params.set('minWidth', String(opts.minWidth))
 
     return `${origin}/api/text-image?${params.toString()}`
   }
