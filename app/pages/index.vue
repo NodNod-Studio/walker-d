@@ -168,7 +168,7 @@ async function downloadSignaturePng() {
           :key="tab.id"
           type="button"
           role="tab"
-          class="motion-snug h-9 px-4 border rounded-full font-sans text-2.8 leading-none uppercase text-center cursor-pointer"
+          class="motion-snug h-9 px-4 border rounded-full font-sans text-3.2 leading-none text-center cursor-pointer"
           :class="activeTab === tab.id
             ? 'bg-ink border-ink text-white'
             : 'bg-transparent border-transparent text-ink/60 hover:text-ink sm:bg-white sm:border-ink sm:text-ink sm:hover:bg-ink sm:hover:text-white'"
@@ -192,7 +192,7 @@ async function downloadSignaturePng() {
             </p>
             <button
               type="button"
-              class="sm:hidden flex items-center gap-1 text-2.8 uppercase text-ink/50 hover:text-ink cursor-pointer"
+              class="sm:hidden flex items-center gap-1 text-3 text-ink/50 hover:text-ink cursor-pointer"
               @click="reset"
             >
               <span class="i-ph-arrow-counter-clockwise size-3.5" aria-hidden="true" />
@@ -280,7 +280,7 @@ async function downloadSignaturePng() {
           <div class="mx-auto mb-3 w-10 h-1 rounded-full bg-neutral-200" aria-hidden="true" />
           <button
             type="button"
-            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-2.8 uppercase text-ink text-left hover:bg-linen cursor-pointer"
+            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
             @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)"
           >
             <span class="i-ph-code size-5" aria-hidden="true" />
@@ -288,7 +288,7 @@ async function downloadSignaturePng() {
           </button>
           <button
             type="button"
-            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-2.8 uppercase text-ink text-left hover:bg-linen cursor-pointer"
+            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
             @click="closeMoreAfter(() => downloadSignature(activeSelector))"
           >
             <span class="i-ph-file-html size-5" aria-hidden="true" />
@@ -297,7 +297,7 @@ async function downloadSignaturePng() {
           <button
             v-if="displayedTab === 'image'"
             type="button"
-            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-2.8 uppercase text-ink text-left hover:bg-linen cursor-pointer"
+            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
             @click="closeMoreAfter(downloadSignaturePng)"
           >
             <span class="i-ph-file-png size-5" aria-hidden="true" />

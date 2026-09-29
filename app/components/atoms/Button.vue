@@ -19,7 +19,7 @@ const NuxtLink = resolveComponent('NuxtLink')
     :is="props.to ? NuxtLink : 'button'"
     :to="props.to"
     :type="props.to ? undefined : type"
-    class="motion-snug inline-flex items-center justify-center gap-1.5 px-4 border rounded-full font-sans text-2.8 leading-none uppercase no-underline cursor-pointer"
+    class="motion-snug inline-flex items-center justify-center gap-1.5 px-4 border rounded-full font-sans text-3.2 leading-none no-underline cursor-pointer"
     :class="[
       size === 'lg' ? 'h-12' : 'h-9',
       theme === 'primary'
