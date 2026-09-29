@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import parsePhoneNumber from 'libphonenumber-js'
-
 const props = withDefaults(defineProps<{
   fullname?: string
   role?: string
@@ -8,16 +6,6 @@ const props = withDefaults(defineProps<{
   fullname: '',
   role: '',
 })
-
-function officePhoneDisplay(phone: string) {
-  const parsed = parsePhoneNumber(phone, 'US')
-  return parsed ? parsed.formatNational() : phone
-}
-
-function officePhoneHref(phone: string) {
-  const parsed = parsePhoneNumber(phone, 'US')
-  return parsed ? `tel:${parsed.format('E.164')}` : `tel:${phone}`
-}
 
 const showNameRow = computed(() => !!(props.fullname || props.role))
 
@@ -99,8 +87,9 @@ const handleStyle = textImageStyle(handleWidth, 11)
     </colgroup>
     <tbody>
       <tr>
-        <td style="padding:0 0 1px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" colspan="2">
+        <td style="padding:0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" colspan="2">
           <img :src="wordmarkImg" :width="wordmarkWidth" height="39" alt="Walker • Drawas" border="0" :style="wordmarkStyle">
+          <span style="display:block;height:1px;max-height:1px;overflow:hidden;font-size:1px;line-height:1px;mso-line-height-rule:exactly;color:rgba(255,255,255,0);mso-hide:all;">Walker Drawas</span>
         </td>
       </tr>
       <tr v-if="showNameRow">
