@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import parsePhoneNumber from 'libphonenumber-js'
-
 const props = withDefaults(defineProps<{
   fullname?: string
   role?: string
@@ -8,16 +6,6 @@ const props = withDefaults(defineProps<{
   fullname: '',
   role: '',
 })
-
-function officePhoneDisplay(phone: string) {
-  const parsed = parsePhoneNumber(phone, 'US')
-  return parsed ? parsed.formatNational() : phone
-}
-
-function officePhoneHref(phone: string) {
-  const parsed = parsePhoneNumber(phone, 'US')
-  return parsed ? `tel:${parsed.format('E.164')}` : `tel:${phone}`
-}
 
 const showNameRow = computed(() => !!(props.fullname || props.role))
 

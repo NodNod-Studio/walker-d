@@ -1,0 +1,31 @@
+import type { Buffer } from 'node:buffer'
+import { createHash } from 'node:crypto'
+
+export default defineEventHandler(async (event) => {
+  await registerFonts()
+
+  const query = getQuery(event)
+  const fullname = signatureQueryText(query.fullname)
+  const role = signatureQueryText(query.role)
+  const scale = clampNumber(query.scale, 1, 4, 2)
+
+  // Bump SIGNATURE_IMAGE_VERSION whenever the layout or rendering changes, so cached PNGs are regenerated.
+  const cacheKey = createHash('sha1').update(`signature:${SIGNATURE_IMAGE_VERSION}:${scale}:${fullname}:${role}`).digest('hex')
+
+  setResponseHeaders(event, {
+    'Content-Type': 'image/png',
+    'Content-Disposition': `inline; filename="signature-${cacheKey}.png"`,
+    'Cache-Control': 'public, max-age=31536000, immutable',
+  })
+
+  const cache = useStorage('cache')
+
+  const cached = await cache.getItemRaw<Buffer>(`signature-image:${cacheKey}.png`)
+  if (cached)
+    return cached
+
+  const buffer = renderSignatureImage(fullname, role, scale)
+  await cache.setItemRaw(`signature-image:${cacheKey}.png`, buffer)
+
+  return buffer
+})

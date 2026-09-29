@@ -21,8 +21,16 @@ function reset() {
 const copyAutoReset = refAutoReset(false, 2000)
 const copyAutoResetHtml = refAutoReset(false, 2000)
 
-async function copySignature() {
-  const el = document.querySelector('.sign') as HTMLElement
+const tabs = [
+  { id: 'custom', label: 'Custom Signature', selector: '.sign' },
+  { id: 'image', label: 'Single Image Signature (legacy)', selector: '.sign-image' },
+] as const
+
+const activeTab = ref<typeof tabs[number]['id']>('custom')
+const activeSelector = computed(() => tabs.find(tab => tab.id === activeTab.value)!.selector)
+
+async function copySignature(selector: string, onCopied: () => void) {
+  const el = document.querySelector(selector) as HTMLElement
   if (!el)
     return
   const range = document.createRange()
@@ -35,7 +43,7 @@ async function copySignature() {
 
   try {
     document.execCommand('copy')
-    copyAutoReset.value = true
+    onCopied()
   }
   catch (err) {
     console.error('Failed to copy text: ', err)
@@ -70,21 +78,21 @@ const tail = `
   </html>
 `
 
-async function copyHtmlSignature() {
-  const el = document.querySelector('.sign') as HTMLElement
+async function copyHtmlSignature(selector: string, onCopied: () => void) {
+  const el = document.querySelector(selector) as HTMLElement
   if (!el)
     return
   const html = el.outerHTML
   const wrappedHtml = head + html + tail
   navigator.clipboard.writeText(wrappedHtml).then(() => {
-    copyAutoResetHtml.value = true
+    onCopied()
   }).catch((err) => {
     console.error('Failed to copy text: ', err)
   })
 }
 
-async function downloadSignature() {
-  const el = document.querySelector('.sign') as HTMLElement
+async function downloadSignature(selector: string) {
+  const el = document.querySelector(selector) as HTMLElement
   if (!el)
     return
   const html = el.outerHTML
@@ -94,6 +102,19 @@ async function downloadSignature() {
   const a = document.createElement('a')
   a.href = url
   a.download = 'signature.html'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+async function downloadSignaturePng() {
+  const img = document.querySelector('.sign-image img') as HTMLImageElement
+  if (!img)
+    return
+  const blob = await $fetch<Blob>(img.src, { responseType: 'blob' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'signature.png'
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -113,13 +134,39 @@ async function downloadSignature() {
         </div>
       </form>
 
+      <div class="tabs" role="tablist">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          type="button"
+          role="tab"
+          class="tab"
+          :class="{ 'tab-active': activeTab === tab.id }"
+          :aria-selected="activeTab === tab.id"
+          @click="activeTab = tab.id"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
+
       <div class="preview-box">
         <p class="preview-label">
           Signature Preview:
         </p>
+        <!--
+          v-show, not v-if: the legacy image gets its size during SSR, so
+          keeping it mounted avoids a resize when switching tabs.
+        -->
         <div class="preview-inner">
           <TheSignature
+            v-show="activeTab === 'custom'"
             class="sign"
+            :fullname="values.fullname"
+            :role="values.role"
+          />
+          <TheSignatureImage
+            v-show="activeTab === 'image'"
+            class="sign-image"
             :fullname="values.fullname"
             :role="values.role"
           />
@@ -132,14 +179,17 @@ async function downloadSignature() {
         </Button>
 
         <div class="actions-group">
-          <Button @click="copySignature">
+          <Button @click="copySignature(activeSelector, () => copyAutoReset = true)">
             {{ copyAutoReset ? 'Copied!' : 'Copy Signature' }}
           </Button>
-          <Button @click="copyHtmlSignature">
+          <Button @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)">
             {{ copyAutoResetHtml ? 'Copied!' : 'Copy HTML' }}
           </Button>
-          <Button theme="primary" @click="downloadSignature">
+          <Button :theme="activeTab === 'custom' ? 'primary' : 'secondary'" @click="downloadSignature(activeSelector)">
             Download HTML
+          </Button>
+          <Button v-if="activeTab === 'image'" theme="primary" @click="downloadSignaturePng">
+            Download PNG
           </Button>
         </div>
       </div>
@@ -213,6 +263,42 @@ async function downloadSignature() {
   .grid {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+.tabs {
+  margin-top: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #eee;
+  border-radius: 999px;
+  background: #fff;
+  color: rgba(17, 17, 17, 0.6);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: #111;
+}
+
+.tab-active {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.tab-active:hover {
+  color: #fff;
+}
+
+.tabs + .preview-box {
+  margin-top: 1rem;
 }
 
 .preview-box {
