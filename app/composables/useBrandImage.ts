@@ -10,7 +10,7 @@ export function useTextImageUrl() {
       weight: opts.weight ?? 'regular',
       fontSize: String(opts.fontSize),
       lineHeight: String(opts.lineHeight ?? 1.2),
-      scale: String(opts.scale ?? 3),
+      scale: String(opts.scale ?? 2),
     })
 
     return `${origin}/api/text-image?${params.toString()}`

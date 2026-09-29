@@ -25,7 +25,13 @@ const { data: size } = useAsyncData(
   { watch: [query] },
 )
 
-const alt = computed(() => [COMPANY.wordmark, props.fullname, props.role].filter(Boolean).join(' – '))
+// Line height = image height, see TheSignature: 0 makes Outlook crop the image.
+const cellStyle = computed(() => {
+  const lh = size.value ? `${size.value.height}px` : 'normal'
+  return `padding:0;border:none;font-size:${lh};line-height:${lh};mso-line-height-rule:exactly;`
+})
+
+const alt =computed(() => [COMPANY.wordmark, props.fullname, props.role].filter(Boolean).join(' – '))
 </script>
 
 <template>
@@ -33,8 +39,8 @@ const alt = computed(() => [COMPANY.wordmark, props.fullname, props.role].filter
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:none;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:Arial,Helvetica,sans-serif;mso-line-height-rule:exactly;">
     <tbody>
       <tr>
-        <td style="padding:0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;">
-          <a :href="`https://${COMPANY.domain}`" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
+        <td :style="cellStyle">
+          <a :href="`https://${COMPANY.domain}`" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;" :style="cellStyle">
             <img
               :src="src"
               :width="size?.width"
@@ -44,7 +50,11 @@ const alt = computed(() => [COMPANY.wordmark, props.fullname, props.role].filter
               :style="`display:block;border:0;${size ? `width:${size.width}px;height:${size.height}px;` : ''}`"
             >
           </a>
-          <span style="display:block;height:1px;max-height:1px;overflow:hidden;font-size:1px;line-height:1px;mso-line-height-rule:exactly;color:rgba(255,255,255,0);mso-hide:all;">Walker Drawas</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0;border:none;font-size:1px;line-height:1px;mso-line-height-rule:exactly;">
+          <span style="display:block;height:1px;max-height:1px;overflow:hidden;font-size:1px;line-height:1px;mso-line-height-rule:exactly;color:#ffffff;mso-hide:all;">Walker Drawas</span>
         </td>
       </tr>
     </tbody>

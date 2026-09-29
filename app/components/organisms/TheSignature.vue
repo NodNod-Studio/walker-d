@@ -76,9 +76,11 @@ const handleStyle = textImageStyle(handleWidth, 11)
     Single flat table, no nesting: a table-within-a-table is where Outlook's
     Word rendering engine tends to mangle signatures on reply/forward, and
     this two-column (LA/NY) layout doesn't need one.
-    Every <td> carries font-size:0/line-height:0 (+ mso-line-height-rule)
-    because Word treats <img> as inline and otherwise reserves descender
-    space below it, which shows up as unexplained extra spacing in Outlook.
+    Every <td> sets font-size/line-height equal to its image's height (+
+    mso-line-height-rule:exactly). When pasted into Outlook desktop, Word
+    drops display:block on <img> and turns each cell into a paragraph with
+    "exactly" line spacing: 0 there crops the inline images (Word also has
+    no font-size:0), while matching the image height leaves no descender gap.
   -->
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:none;table-layout:fixed;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:Arial,Helvetica,sans-serif;mso-line-height-rule:exactly;">
     <colgroup>
@@ -87,59 +89,68 @@ const handleStyle = textImageStyle(handleWidth, 11)
     </colgroup>
     <tbody>
       <tr>
-        <td style="padding:0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" colspan="2">
+        <td style="padding:0;border:none;font-size:39px;line-height:39px;mso-line-height-rule:exactly;" colspan="2">
           <img :src="wordmarkImg" :width="wordmarkWidth" height="39" alt="Walker • Drawas" border="0" :style="wordmarkStyle">
-          <span style="display:block;height:1px;max-height:1px;overflow:hidden;font-size:1px;line-height:1px;mso-line-height-rule:exactly;color:rgba(255,255,255,0);mso-hide:all;">Walker Drawas</span>
         </td>
       </tr>
       <tr v-if="showNameRow">
-        <td valign="top" style="border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
+        <td valign="top" style="border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
           <img v-if="fullname" :src="fullnameImg" :width="fullnameWidth" height="11" :alt="fullname" border="0" :style="fullnameStyle">
           <img v-else :src="spacerImg" width="1" height="11" alt="" border="0" style="display:block;border:0;height:11px;">
         </td>
-        <td valign="top" style="padding:0 0 10px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
+        <td valign="top" style="padding:0 0 10px 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
           <img v-if="role" :src="roleImg" :width="roleWidth" height="11" :alt="role" border="0" :style="roleStyle">
           <img v-else :src="spacerImg" width="1" height="11" alt="" border="0" style="display:block;border:0;height:11px;">
         </td>
       </tr>
       <tr>
-        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
+        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
           <img :src="laAddressLine1Img" :width="laAddressLine1Width" height="11" :alt="COMPANY.offices.LA.addressLine1" border="0" :style="laAddressLine1Style">
         </td>
-        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
+        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
           <img :src="nyAddressLine1Img" :width="nyAddressLine1Width" height="11" :alt="COMPANY.offices.NY.addressLine1" border="0" :style="nyAddressLine1Style">
         </td>
       </tr>
       <tr>
-        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
+        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
           <img :src="laAddressLine2Img" :width="laAddressLine2Width" height="11" :alt="COMPANY.offices.LA.addressLine2" border="0" :style="laAddressLine2Style">
         </td>
-        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
+        <td valign="top" style="padding:0 0 1px 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
           <img :src="nyAddressLine2Img" :width="nyAddressLine2Width" height="11" :alt="COMPANY.offices.NY.addressLine2" border="0" :style="nyAddressLine2Style">
         </td>
       </tr>
       <tr>
-        <td valign="top" style="padding:0 0 10px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
-          <a :href="officePhoneHref(COMPANY.offices.LA.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
+        <td valign="top" style="padding:0 0 10px 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
+          <a :href="officePhoneHref(COMPANY.offices.LA.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:11px;line-height:11px;mso-line-height-rule:exactly;">
             <img :src="laPhoneImg" :width="laPhoneWidth" height="11" :alt="laPhoneText" border="0" :style="laPhoneStyle">
           </a>
         </td>
-        <td valign="top" style="padding:0 0 10px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
-          <a :href="officePhoneHref(COMPANY.offices.NY.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
+        <td valign="top" style="padding:0 0 10px 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
+          <a :href="officePhoneHref(COMPANY.offices.NY.phone)" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:11px;line-height:11px;mso-line-height-rule:exactly;">
             <img :src="nyPhoneImg" :width="nyPhoneWidth" height="11" :alt="nyPhoneText" border="0" :style="nyPhoneStyle">
           </a>
         </td>
       </tr>
       <tr>
-        <td valign="top" style="padding:0 0 0 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
-          <a :href="`https://${COMPANY.domain}`" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
+        <td valign="top" style="padding:0 0 0 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${laColWidth}px;`">
+          <a :href="`https://${COMPANY.domain}`" rel="nofollow" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:11px;line-height:11px;mso-line-height-rule:exactly;">
             <img :src="domainImg" :width="domainWidth" height="11" :alt="COMPANY.domain" border="0" :style="domainStyle">
           </a>
         </td>
-        <td valign="top" style="padding:0 0 0 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
-          <a :href="COMPANY.instagramUrl" target="_blank" rel="noopener noreferrer" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:0;line-height:0;mso-line-height-rule:exactly;">
+        <td valign="top" style="padding:0 0 0 0;border:none;font-size:11px;line-height:11px;mso-line-height-rule:exactly;" :style="`width:${nyColWidth}px;`">
+          <a :href="COMPANY.instagramUrl" target="_blank" rel="noopener noreferrer" border="0" style="text-decoration:none;border:0;outline:none;display:block;font-size:11px;line-height:11px;mso-line-height-rule:exactly;">
             <img :src="handleImg" :width="handleWidth" height="11" :alt="COMPANY.handle" border="0" :style="handleStyle">
           </a>
+        </td>
+      </tr>
+      <!--
+        Hidden text so iOS doesn't drop an image-only signature. Kept in its
+        own row (Word would otherwise inline it next to an image) and colored
+        with hex, since Word discards rgba() and would render it visible.
+      -->
+      <tr>
+        <td colspan="2" style="padding:0;border:none;font-size:1px;line-height:1px;mso-line-height-rule:exactly;">
+          <span style="display:block;height:1px;max-height:1px;overflow:hidden;font-size:1px;line-height:1px;mso-line-height-rule:exactly;color:#ffffff;mso-hide:all;">Walker Drawas</span>
         </td>
       </tr>
     </tbody>
