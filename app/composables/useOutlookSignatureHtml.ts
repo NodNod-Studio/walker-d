@@ -15,7 +15,7 @@
  * - `font-size:1pt` + single line spacing, so the line grows to fit the image
  *   and only a ~1pt font descent is added below it. Exact spacing is avoided:
  *   it crops images in Word, and a pt value made sent rows far too tall;
- * - sizes in pt alongside the px `width`/`height` attributes;
+ * - every size in pt, as styles only (no px `width`/`height` attributes);
  * - images rendered at 1x, i.e. natural size = display size. Outlook writes
  *   image sizes in inches, which Gmail drops when forwarding: a 2x image would
  *   then show at double size, a 1x one stays right.
@@ -44,22 +44,20 @@ interface OutlookImage {
 }
 
 function image({ src, width, height, alt, href }: OutlookImage) {
-  const size = width ? `width="${width}" ` : ''
   const style = `${width ? `width:${pt(width)};` : ''}height:${pt(height)};border:0;`
-  const img = `<img border="0" ${size}height="${height}" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" style="${style}">`
+  const img = `<img border="0" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" style="${style}">`
   return href
     ? `<a href="${escapeHtml(href)}" style="text-decoration:none;">${img}</a>`
     : img
 }
 
 function paragraph(content: string) {
-  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;line-height:normal;font-family:Arial,sans-serif;">${content}</p>`
+  return `<p class="ParagraphTest" style="margin:0;font-size:1.0pt;line-height:normal;font-family:Arial,sans-serif;">${content}</p>`
 }
 
 function cell(content: string, width: number | undefined, paddingBottom = 0) {
-  const size = width ? `width="${width}" ` : ''
   const style = `${width ? `width:${pt(width)};` : ''}padding:0 0 ${pt(paddingBottom)} 0;border:none;`
-  return `<td ${size}valign="top" style="${style}">${paragraph(content)}</td>`
+  return `<td valign="top" style="${style}">${paragraph(content)}</td>`
 }
 
 const TEXT_LINE_HEIGHT = 1.2
