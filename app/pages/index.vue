@@ -4,9 +4,6 @@ useSeoMeta({
   title: 'Walker•Drawas Signature Generator',
 })
 
-const { textImageUrl } = useTextImageUrl()
-const wordmarkImg = textImageUrl(COMPANY.wordmark, { weight: 'bold', fontSize: 22 })
-
 const initialValues: { fullname: string, role: string } = {
   fullname: '',
   role: '',
@@ -101,9 +98,7 @@ async function downloadSignature() {
 
 <template>
   <div class="page">
-    <header class="header">
-      <img :src="wordmarkImg" height="18" alt="Walker • Drawas" class="brand-logo">
-    </header>
+    <TheHeader />
 
     <div class="container">
       <form class="form" novalidate @submit.prevent>
@@ -143,31 +138,6 @@ async function downloadSignature() {
           </Button>
         </div>
       </div>
-
-      <div class="help">
-        <h3 class="help-title">
-          How to install HTML signatures
-        </h3>
-        <div class="help-body">
-          <a
-            href="https://matt.coneybeare.me/how-to-make-an-html-signature-in-apple-mail-for-macos-sonoma-14/"
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            class="help-link"
-          >
-            How to add an HTML signature in Apple Mail (macOS Sonoma)
-          </a>
-          <div class="help-note">
-            <h4 class="help-note-title">
-              iOS Mail tip
-            </h4>
-            <p>
-              After pasting the signature in iOS Mail, shake your iPhone to trigger undo:
-              this removes the default formatting iOS adds and lets the signature render correctly.
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -180,20 +150,6 @@ async function downloadSignature() {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   background: #fff;
   color: #111;
-}
-
-.header {
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #eee;
-}
-
-.brand-logo {
-  display: block;
-  height: 18px;
-  width: auto;
 }
 
 .container {
@@ -251,51 +207,4 @@ async function downloadSignature() {
   flex-wrap: wrap;
 }
 
-.help {
-  margin-top: 3rem;
-  padding-top: 1rem;
-}
-
-.help-title {
-  font-size: 0.8rem;
-
-  color: rgba(17, 17, 17, 0.5);
-  margin: 0 0 1.25rem;
-}
-
-.help-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.help-link {
-  display: block;
-  padding: 0.6rem 0.8rem;
-  border-radius: 6px;
-  background: #f5f5f3;
-  color: #111;
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-
-.help-note {
-  margin-top: 0.5rem;
-  padding: 0.75rem;
-  border-radius: 6px;
-  background: #f5f5f3;
-}
-
-.help-note-title {
-  font-size: 0.75rem;
-
-  color: rgba(17, 17, 17, 0.5);
-  margin: 0 0 0.25rem;
-}
-
-.help-note p {
-  font-size: 0.85rem;
-  color: rgba(17, 17, 17, 0.6);
-  margin: 0;
-}
 </style>
