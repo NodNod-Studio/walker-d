@@ -99,8 +99,9 @@ const handleStyle = textImageStyle(handleWidth, 11)
     </colgroup>
     <tbody>
       <tr>
-        <td style="padding:0 0 1px 0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" colspan="2">
+        <td style="padding:0;border:none;font-size:0;line-height:0;mso-line-height-rule:exactly;" colspan="2">
           <img :src="wordmarkImg" :width="wordmarkWidth" height="39" alt="Walker • Drawas" border="0" :style="wordmarkStyle">
+          <span style="display:block;height:1px;max-height:1px;overflow:hidden;font-size:1px;line-height:1px;mso-line-height-rule:exactly;color:rgba(255,255,255,0);mso-hide:all;">Walker Drawas</span>
         </td>
       </tr>
       <tr v-if="showNameRow">
