@@ -1,21 +1,32 @@
 <script setup lang="ts">
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   theme?: 'primary' | 'secondary'
+  size?: 'md' | 'lg'
   type?: 'button' | 'submit'
+  // Renders a NuxtLink styled as a button
+  to?: string
 }>(), {
   theme: 'secondary',
+  size: 'md',
   type: 'button',
 })
+
+const NuxtLink = resolveComponent('NuxtLink')
 </script>
 
 <template>
-  <button
-    class="motion-snug text-2.2 font-sans px-4 py-2.4 border rounded-12.5 cursor-pointer uppercase"
-    :class="theme === 'primary'
-      ? 'bg-ink text-white border-ink hover:bg-neutral-700 hover:border-neutral-700'
-      : 'bg-white text-ink border-ink hover:bg-ink hover:text-white'"
-    :type="type"
+  <component
+    :is="props.to ? NuxtLink : 'button'"
+    :to="props.to"
+    :type="props.to ? undefined : type"
+    class="motion-snug inline-flex items-center justify-center gap-1.5 px-4 border rounded-full font-sans text-2.8 leading-none uppercase no-underline cursor-pointer"
+    :class="[
+      size === 'lg' ? 'h-12' : 'h-9',
+      theme === 'primary'
+        ? 'bg-ink text-white border-ink hover:bg-neutral-700 hover:border-neutral-700'
+        : 'bg-white text-ink border-ink hover:bg-ink hover:text-white',
+    ]"
   >
     <slot />
-  </button>
+  </component>
 </template>

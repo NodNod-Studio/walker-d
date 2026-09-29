@@ -1,7 +1,6 @@
 <script setup lang="ts">
 useSeoMeta({
-  robots: 'noindex, nofollow',
-  title: 'Walker•Drawas Signature Generator',
+  title: 'Walker•Drawas Signature',
 })
 
 const initialValues: { fullname: string, role: string } = {
@@ -169,10 +168,10 @@ async function downloadSignaturePng() {
           :key="tab.id"
           type="button"
           role="tab"
-          class="px-3.5 py-2 border rounded-full font-sans text-3.2 text-center cursor-pointer"
+          class="motion-snug h-9 px-4 border rounded-full font-sans text-2.8 leading-none uppercase text-center cursor-pointer"
           :class="activeTab === tab.id
             ? 'bg-ink border-ink text-white'
-            : 'bg-transparent border-transparent text-ink/60 hover:text-ink sm:bg-white sm:border-neutral-200'"
+            : 'bg-transparent border-transparent text-ink/60 hover:text-ink sm:bg-white sm:border-ink sm:text-ink sm:hover:bg-ink sm:hover:text-white'"
           :aria-selected="activeTab === tab.id"
           @click="selectTab(tab.id)"
         >
@@ -193,7 +192,7 @@ async function downloadSignaturePng() {
             </p>
             <button
               type="button"
-              class="sm:hidden flex items-center gap-1 text-3 text-ink/50 hover:text-ink cursor-pointer"
+              class="sm:hidden flex items-center gap-1 text-2.8 uppercase text-ink/50 hover:text-ink cursor-pointer"
               @click="reset"
             >
               <span class="i-ph-arrow-counter-clockwise size-3.5" aria-hidden="true" />
@@ -225,11 +224,11 @@ async function downloadSignaturePng() {
         <div :key="displayedTab" class="mt-6">
           <!-- Mobile: one primary action, the rest in the "More" sheet -->
           <div class="flex gap-2 sm:hidden">
-            <Button theme="primary" class="flex-1 !py-3.5 !text-2.8" @click="copySignature(activeSelector, () => copyAutoReset = true)">
+            <Button theme="primary" size="lg" class="flex-1" @click="copySignature(activeSelector, () => copyAutoReset = true)">
               {{ copyAutoReset ? 'Copied!' : 'Copy Signature' }}
             </Button>
-            <Button class="!px-3.5" aria-label="More actions" :aria-expanded="moreOpen" @click="moreOpen = true">
-              <span class="i-ph-dots-three-bold block size-5" aria-hidden="true" />
+            <Button size="lg" class="!px-4.5" aria-label="More actions" :aria-expanded="moreOpen" @click="moreOpen = true">
+              <span class="i-ph-dots-three-bold size-4" aria-hidden="true" />
             </Button>
           </div>
 
@@ -281,7 +280,7 @@ async function downloadSignaturePng() {
           <div class="mx-auto mb-3 w-10 h-1 rounded-full bg-neutral-200" aria-hidden="true" />
           <button
             type="button"
-            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
+            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-2.8 uppercase text-ink text-left hover:bg-linen cursor-pointer"
             @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)"
           >
             <span class="i-ph-code size-5" aria-hidden="true" />
@@ -289,7 +288,7 @@ async function downloadSignaturePng() {
           </button>
           <button
             type="button"
-            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
+            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-2.8 uppercase text-ink text-left hover:bg-linen cursor-pointer"
             @click="closeMoreAfter(() => downloadSignature(activeSelector))"
           >
             <span class="i-ph-file-html size-5" aria-hidden="true" />
@@ -298,7 +297,7 @@ async function downloadSignaturePng() {
           <button
             v-if="displayedTab === 'image'"
             type="button"
-            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
+            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-2.8 uppercase text-ink text-left hover:bg-linen cursor-pointer"
             @click="closeMoreAfter(downloadSignaturePng)"
           >
             <span class="i-ph-file-png size-5" aria-hidden="true" />

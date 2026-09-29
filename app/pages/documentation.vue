@@ -1,7 +1,6 @@
 <script setup lang="ts">
 useSeoMeta({
-  robots: 'noindex, nofollow',
-  title: 'Documentation – Walker•Drawas Signature Generator',
+  title: 'Documentation – Walker•Drawas Signature',
 })
 
 import {
