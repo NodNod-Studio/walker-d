@@ -6,9 +6,14 @@
  * this builds the signature directly in the markup Word itself would save,
  * so there is nothing left for it to rewrite:
  * - explicit `margin:0` on each paragraph (Word's Normal style adds space after);
- * - `font-size:1pt` + single line spacing, so the line grows to fit the image
- *   and only a ~1pt font descent is added below it (exact spacing crops images);
- * - sizes in pt on cells/images, alongside the px `width`/`height` attributes.
+ * - `font-size:1pt` + exact line spacing 1px taller than the image: Word keeps
+ *   it on the sent `p`, so browsers don't size each row from Outlook's default
+ *   11pt paragraph font (extra gaps), while Word doesn't crop the image
+ *   (it only does when the exact line is shorter than the image);
+ * - sizes in pt on cells/images, alongside the px `width`/`height` attributes;
+ * - images rendered at 1x, i.e. natural size = display size. Outlook writes
+ *   image sizes in inches, which Gmail drops when forwarding: a 2x image would
+ *   then show at double size, a 1x one stays right.
  */
 
 const PX_TO_PT = 0.75
@@ -42,14 +47,25 @@ function image({ src, width, height, alt, href }: OutlookImage) {
     : img
 }
 
-function paragraph(content: string) {
-  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;line-height:normal;font-family:Arial,sans-serif;">${content}</p>`
+function paragraph(content: string, imageHeight: number) {
+  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;line-height:${pt(imageHeight + 1)};mso-line-height-rule:exactly;font-family:Arial,sans-serif;">${content}</p>`
 }
 
-function cell(content: string, opts: { width: number, colspan?: number, paddingBottom?: number }) {
+function cell(content: string, opts: { width: number, height: number, colspan?: number, paddingBottom?: number }) {
   const colspan = opts.colspan ? ` colspan="${opts.colspan}"` : ''
   const padding = opts.paddingBottom ? `0 0 ${pt(opts.paddingBottom)} 0` : '0'
-  return `<td width="${opts.width}"${colspan} valign="top" style="width:${pt(opts.width)};padding:${padding};border:none;">${paragraph(content)}</td>`
+  return `<td width="${opts.width}"${colspan} valign="top" style="width:${pt(opts.width)};padding:${padding};border:none;">${paragraph(content, opts.height)}</td>`
+}
+
+const TEXT_LINE_HEIGHT = 1.2
+
+/**
+ * Font size that renders `baseFontSize` text at the same visual size as the
+ * preview (a 2x/3x image of `baseFontSize` shrunk to `displayHeight`), but
+ * as an image whose natural 1x height is exactly `displayHeight`.
+ */
+function oneXFontSize(baseFontSize: number, displayHeight: number) {
+  return baseFontSize * displayHeight / Math.ceil(baseFontSize * TEXT_LINE_HEIGHT)
 }
 
 export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>) {
@@ -60,11 +76,11 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
   const bold = { weight: 'bold', fontSize: 13 } as const
   const wordmarkOpts = { weight: 'bold', fontSize: 28 } as const
 
-  // Same image URLs and sizes as TheSignature, so both share cached requests.
   function textImage(text: MaybeRefOrGetter<string>, opts: { weight?: 'regular' | 'bold', fontSize: number }, displayHeight: number) {
+    const oneX = { ...opts, fontSize: oneXFontSize(opts.fontSize, displayHeight) }
     return {
-      src: useTextImageSrc(text, opts),
-      width: useTextImageWidth(text, { ...opts, displayHeight }),
+      src: useTextImageSrc(text, { ...oneX, scale: 1 }),
+      width: useTextImageWidth(text, { ...oneX, displayHeight }),
     }
   }
 
@@ -97,23 +113,23 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
     const roleValue = toValue(role)
 
     const rows = [
-      cell(image({ src: wordmark.src.value, width: wordmark.width.value, height: 39, alt: 'Walker • Drawas' }), { width: laWidth + nyWidth, colspan: 2 }),
+      cell(image({ src: wordmark.src.value, width: wordmark.width.value, height: 39, alt: 'Walker • Drawas' }), { width: laWidth + nyWidth, height: 39, colspan: 2 }),
     ]
     if (nameValue || roleValue) {
       rows.push(
-        cell(nameValue ? text(name, nameValue) : spacer, { width: laWidth, paddingBottom: 10 })
-        + cell(roleValue ? text(roleImg, roleValue) : spacer, { width: nyWidth, paddingBottom: 10 }),
+        cell(nameValue ? text(name, nameValue) : spacer, { width: laWidth, height: 11, paddingBottom: 10 })
+        + cell(roleValue ? text(roleImg, roleValue) : spacer, { width: nyWidth, height: 11, paddingBottom: 10 }),
       )
     }
     rows.push(
-      cell(text(laLine1, COMPANY.offices.LA.addressLine1), { width: laWidth, paddingBottom: 1 })
-      + cell(text(nyLine1, COMPANY.offices.NY.addressLine1), { width: nyWidth, paddingBottom: 1 }),
-      cell(text(laLine2, COMPANY.offices.LA.addressLine2), { width: laWidth, paddingBottom: 1 })
-      + cell(text(nyLine2, COMPANY.offices.NY.addressLine2), { width: nyWidth, paddingBottom: 1 }),
-      cell(text(laPhone, laPhoneText, officePhoneHref(COMPANY.offices.LA.phone)), { width: laWidth, paddingBottom: 10 })
-      + cell(text(nyPhone, nyPhoneText, officePhoneHref(COMPANY.offices.NY.phone)), { width: nyWidth, paddingBottom: 10 }),
-      cell(text(domain, COMPANY.domain, `https://${COMPANY.domain}`), { width: laWidth })
-      + cell(text(handle, COMPANY.handle, COMPANY.instagramUrl), { width: nyWidth }),
+      cell(text(laLine1, COMPANY.offices.LA.addressLine1), { width: laWidth, height: 11, paddingBottom: 1 })
+      + cell(text(nyLine1, COMPANY.offices.NY.addressLine1), { width: nyWidth, height: 11, paddingBottom: 1 }),
+      cell(text(laLine2, COMPANY.offices.LA.addressLine2), { width: laWidth, height: 11, paddingBottom: 1 })
+      + cell(text(nyLine2, COMPANY.offices.NY.addressLine2), { width: nyWidth, height: 11, paddingBottom: 1 }),
+      cell(text(laPhone, laPhoneText, officePhoneHref(COMPANY.offices.LA.phone)), { width: laWidth, height: 11, paddingBottom: 10 })
+      + cell(text(nyPhone, nyPhoneText, officePhoneHref(COMPANY.offices.NY.phone)), { width: nyWidth, height: 11, paddingBottom: 10 }),
+      cell(text(domain, COMPANY.domain, `https://${COMPANY.domain}`), { width: laWidth, height: 11 })
+      + cell(text(handle, COMPANY.handle, COMPANY.instagramUrl), { width: nyWidth, height: 11 }),
     )
 
     return `<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">`
