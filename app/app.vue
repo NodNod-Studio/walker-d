@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const siteUrl = (useRuntimeConfig().public.siteUrl || useRequestURL().origin).replace(/\/$/, '')
-const description = 'Create your Walker•Drawas email signature in a few seconds, ready for Gmail, Outlook and Apple Mail.'
+const description = 'Global Brand Marketing Strategists | Press | Celebrity Influencer and VIP | Experiential and Events | Campaigns, Collaborations, and Endorsement Deals.'
 
 useSeoMeta({
   robots: 'noindex, nofollow, noarchive, nosnippet, noimageindex',
