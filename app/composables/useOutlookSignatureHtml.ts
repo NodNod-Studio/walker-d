@@ -50,6 +50,15 @@ function image({ src, width, height, alt, href }: OutlookImage) {
 }
 
 /**
+ * Margins are .05pt (1 twip, Word's smallest step) instead of 0: Word leaves out
+ * any margin equal to its Normal style (`p.MsoNormal { margin:0 }` in the email's
+ * <head>), so with 0 the sent paragraph relies on that <style> alone. Clients that
+ * drop the <head> styles (e.g. the Gmail app) then fall back to the default ~1em
+ * paragraph margins; a non-zero value forces Word to write the margins inline.
+ */
+const PARAGRAPH_MARGIN = '.05pt 0 .05pt 0'
+
+/**
  * `line-height:1pt` with no `mso-line-height-rule`, which Word reads as "at
  * least 1pt": the line still grows to fit the image, so nothing is cropped.
  * Browsers instead size the line from the paragraph's own font (Outlook's 11pt
@@ -61,7 +70,7 @@ function image({ src, width, height, alt, href }: OutlookImage) {
  * (~28px under the 64px header).
  */
 function paragraph(content: string) {
-  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;">${content}</p>`
+  return `<p class="MsoNormal" style="margin:${PARAGRAPH_MARGIN};font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;">${content}</p>`
 }
 
 function cell(content: string, width: number | undefined, paddingBottom = 0) {
