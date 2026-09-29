@@ -20,11 +20,14 @@ const copyAutoResetOutlook = refAutoReset(false, 2000)
 
 const outlookHtml = useOutlookSignatureHtml(() => values.fullname, () => values.role)
 
-function copyOutlookSignature() {
-  const plainText = [COMPANY.wordmark, [values.fullname, values.role].filter(Boolean).join(' – ')]
+function signaturePlainText() {
+  return [COMPANY.wordmark, [values.fullname, values.role].filter(Boolean).join(' – ')]
     .filter(Boolean)
     .join('\n')
-  if (copyRawHtml(outlookHtml.value, plainText))
+}
+
+function copyOutlookSignature() {
+  if (copyRawHtml(outlookHtml.value, signaturePlainText()))
     copyAutoResetOutlook.value = true
 }
 
@@ -71,27 +74,20 @@ function closeMoreAfter(action: () => unknown) {
   moreOpen.value = false
 }
 
-async function copySignature(selector: string, onCopied: () => void) {
+// Copies the template markup as written: copying a DOM selection would let the
+// browser rewrite it with computed styles, dropping mso-* properties and
+// turning hex colors into rgba() that Word can't read.
+function copySignature(selector: string, onCopied: () => void) {
   const el = document.querySelector(selector) as HTMLElement
   if (!el)
     return
-  const range = document.createRange()
-  range.selectNodeContents(el)
-  const sel = window.getSelection()
-  if (!sel)
-    return
-  sel.removeAllRanges()
-  sel.addRange(range)
-
   try {
-    document.execCommand('copy')
-    onCopied()
+    if (copyRawHtml(el.outerHTML, signaturePlainText()))
+      onCopied()
   }
   catch (err) {
     console.error('Failed to copy text: ', err)
   }
-
-  sel.removeAllRanges()
 }
 
 const head = `<!doctype html>

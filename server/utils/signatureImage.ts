@@ -8,7 +8,14 @@ import { createCanvas } from '@napi-rs/canvas'
  * the same display box the <img> tags use, so both versions line up.
  */
 
-export const SIGNATURE_IMAGE_VERSION = 3
+export const SIGNATURE_IMAGE_VERSION = 4
+
+/**
+ * 'full': the whole signature. 'header': wordmark, name/role and addresses
+ * only, for the Outlook version, which adds the linked rows (phones, site,
+ * Instagram) as separate images underneath so they stay clickable.
+ */
+export type SignaturePart = 'full' | 'header'
 
 export interface SignatureTextItem {
   text: string
@@ -36,7 +43,7 @@ function drawItem(ctx: SKRSContext2D, item: SignatureTextItem, x: number, y: num
 }
 
 /** Shared by /api/signature-image and /api/signature-image-meta so the PNG and its advertised size always agree. */
-export function layoutSignature(fullname: string, role: string) {
+export function layoutSignature(fullname: string, role: string, part: SignaturePart = 'full') {
   const { LA, NY } = COMPANY.offices
   const small = (text: string, weightKey: WeightKey = 'regular') => textItem(text, weightKey, 13, 11)
 
@@ -51,8 +58,10 @@ export function layoutSignature(fullname: string, role: string) {
     rows.push({ la: fullname ? small(fullname, 'bold') : undefined, ny: role ? small(role, 'bold') : undefined, height: 21 })
   rows.push({ la: small(LA.addressLine1), ny: small(NY.addressLine1), height: 12 })
   rows.push({ la: small(LA.addressLine2), ny: small(NY.addressLine2), height: 12 })
-  rows.push({ la: small(`O: ${officePhoneDisplay(LA.phone)}`), ny: small(`O: ${officePhoneDisplay(NY.phone)}`), height: 21 })
-  rows.push({ la: small(COMPANY.domain), ny: small(COMPANY.handle), height: 11 })
+  if (part === 'full') {
+    rows.push({ la: small(`O: ${officePhoneDisplay(LA.phone)}`), ny: small(`O: ${officePhoneDisplay(NY.phone)}`), height: 21 })
+    rows.push({ la: small(COMPANY.domain), ny: small(COMPANY.handle), height: 11 })
+  }
 
   // Wordmark row is 39px image + the 1px hidden-text line under it.
   const wordmarkRowHeight = 40
@@ -65,8 +74,8 @@ export function layoutSignature(fullname: string, role: string) {
   return { wordmark, wordmarkRowHeight, nyX, rows, width, height }
 }
 
-export function renderSignatureImage(fullname: string, role: string, scale: number) {
-  const { wordmark, wordmarkRowHeight, nyX, rows, width, height } = layoutSignature(fullname, role)
+export function renderSignatureImage(fullname: string, role: string, scale: number, part: SignaturePart = 'full') {
+  const { wordmark, wordmarkRowHeight, nyX, rows, width, height } = layoutSignature(fullname, role, part)
 
   const canvas = createCanvas(Math.ceil(width * scale), Math.ceil(height * scale))
   const ctx = canvas.getContext('2d')
@@ -85,6 +94,10 @@ export function renderSignatureImage(fullname: string, role: string, scale: numb
   }
 
   return canvas.toBuffer('image/png')
+}
+
+export function signatureQueryPart(value: unknown): SignaturePart {
+  return value === 'header' ? 'header' : 'full'
 }
 
 export function signatureQueryText(value: unknown) {

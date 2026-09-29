@@ -7,11 +7,15 @@ export default defineEventHandler(async (event) => {
   await registerFonts()
 
   const query = getQuery(event)
-  const { width, height } = layoutSignature(signatureQueryText(query.fullname), signatureQueryText(query.role))
+  const { width, height, nyX } = layoutSignature(
+    signatureQueryText(query.fullname),
+    signatureQueryText(query.role),
+    signatureQueryPart(query.part),
+  )
 
   setResponseHeaders(event, {
     'Cache-Control': 'public, max-age=31536000, immutable',
   })
 
-  return { width, height }
+  return { width, height, nyX }
 })

@@ -36,5 +36,6 @@ const pageTransition = {
   <div class="min-h-screen flex flex-col">
     <TheHeader />
     <NuxtPage :transition="pageTransition" />
+    <TheFooter />
   </div>
 </template>

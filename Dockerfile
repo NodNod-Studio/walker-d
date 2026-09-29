@@ -13,6 +13,10 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 
+# Commit shown in the footer (.git isn't in the build context)
+ARG SOURCE_COMMIT
+ENV SOURCE_COMMIT=$SOURCE_COMMIT
+
 RUN pnpm run postinstall && pnpm run build
 
 FROM node:22-alpine AS runner

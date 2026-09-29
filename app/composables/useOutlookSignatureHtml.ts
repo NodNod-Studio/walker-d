@@ -2,14 +2,21 @@
  * Classic Outlook for Windows composes with Word, which rewrites any pasted
  * HTML into its own model: every cell becomes a `p.MsoNormal`, images become
  * inline characters of that paragraph, and CSS it doesn't know (display:block,
- * font-size:0, rgba colors…) is dropped. Instead of fighting that conversion,
- * this builds the signature directly in the markup Word itself would save,
- * so there is nothing left for it to rewrite:
- * - explicit `margin:0` on each paragraph (Word's Normal style adds space after);
+ * font-size:0, rgba colors…) is dropped. Each of those paragraphs also adds a
+ * few px below its images (Outlook's default 11pt paragraph font), so this
+ * version keeps the number of paragraphs as low as possible, with no table:
+ * 1. one image for everything without links (wordmark, name/role, addresses);
+ * 2. the two phone links side by side;
+ * 3. site + Instagram side by side.
+ * In rows 2 and 3 the left image is padded with transparent space up to the
+ * NY column's x (`minWidth`), so the right image lines up under "DRAWAS".
+ *
+ * The markup is what Word itself would save, so there is nothing to rewrite:
+ * - explicit margins on each paragraph (Word's Normal style adds space after);
  * - `font-size:1pt` + single line spacing, so the line grows to fit the image
  *   and only a ~1pt font descent is added below it. Exact spacing is avoided:
  *   it crops images in Word, and a pt value made sent rows far too tall;
- * - sizes in pt on cells/images, alongside the px `width`/`height` attributes;
+ * - sizes in pt alongside the px `width`/`height` attributes;
  * - images rendered at 1x, i.e. natural size = display size. Outlook writes
  *   image sizes in inches, which Gmail drops when forwarding: a 2x image would
  *   then show at double size, a 1x one stays right.
@@ -46,17 +53,15 @@ function image({ src, width, height, alt, href }: OutlookImage) {
     : img
 }
 
-function paragraph(content: string) {
-  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;line-height:normal;font-family:Arial,sans-serif;">${content}</p>`
-}
-
-function cell(content: string, opts: { width: number, colspan?: number, paddingBottom?: number }) {
-  const colspan = opts.colspan ? ` colspan="${opts.colspan}"` : ''
-  const padding = opts.paddingBottom ? `0 0 ${pt(opts.paddingBottom)} 0` : '0'
-  return `<td width="${opts.width}"${colspan} valign="top" style="width:${pt(opts.width)};padding:${padding};border:none;">${paragraph(content)}</td>`
+function paragraph(content: string, marginBottom = 0) {
+  return `<p class="MsoNormal" style="margin:0 0 ${pt(marginBottom)} 0;font-size:1.0pt;line-height:normal;font-family:Arial,sans-serif;">${content}</p>`
 }
 
 const TEXT_LINE_HEIGHT = 1.2
+const LINK_HEIGHT = 11
+const LINK_FONT_SIZE = 13
+// Same gap TheSignature leaves under the phone row.
+const PHONE_ROW_GAP = 10
 
 /**
  * Font size that renders `baseFontSize` text at the same visual size as the
@@ -68,71 +73,76 @@ function oneXFontSize(baseFontSize: number, displayHeight: number) {
 }
 
 export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>) {
+  const origin = useRequestURL().origin
+  const { textImageUrl } = useTextImageUrl()
+
+  const headerQuery = computed(() => new URLSearchParams({
+    fullname: toValue(fullname),
+    role: toValue(role),
+    part: 'header',
+  }).toString())
+
+  const { data: header } = useAsyncData(
+    () => `signature-image-meta:${headerQuery.value}`,
+    () => $fetch<{ width: number, height: number, nyX: number }>(`${origin}/api/signature-image-meta?${headerQuery.value}`),
+    { watch: [headerQuery] },
+  )
+
+  const linkOpts = { fontSize: oneXFontSize(LINK_FONT_SIZE, LINK_HEIGHT) }
+  const linkWidth = (text: string) => useTextImageWidth(text, { ...linkOpts, displayHeight: LINK_HEIGHT })
+
   const laPhoneText = `O: ${officePhoneDisplay(COMPANY.offices.LA.phone)}`
   const nyPhoneText = `O: ${officePhoneDisplay(COMPANY.offices.NY.phone)}`
 
-  const regular = { fontSize: 13 }
-  const bold = { weight: 'bold', fontSize: 13 } as const
-  const wordmarkOpts = { weight: 'bold', fontSize: 28 } as const
-
-  function textImage(text: MaybeRefOrGetter<string>, opts: { weight?: 'regular' | 'bold', fontSize: number }, displayHeight: number) {
-    const oneX = { ...opts, fontSize: oneXFontSize(opts.fontSize, displayHeight) }
-    return {
-      src: useTextImageSrc(text, { ...oneX, scale: 1 }),
-      width: useTextImageWidth(text, { ...oneX, displayHeight }),
-    }
+  const widths = {
+    laPhone: linkWidth(laPhoneText),
+    nyPhone: linkWidth(nyPhoneText),
+    domain: linkWidth(COMPANY.domain),
+    handle: linkWidth(COMPANY.handle),
   }
 
-  const wordmark = textImage(COMPANY.wordmark, wordmarkOpts, 39)
-  const wordmarkPrefix = textImage(COMPANY.wordmark.replace(/DRAWAS$/, ''), wordmarkOpts, 39)
-  const name = textImage(fullname, bold, 11)
-  const roleImg = textImage(role, bold, 11)
-  const laLine1 = textImage(COMPANY.offices.LA.addressLine1, regular, 11)
-  const laLine2 = textImage(COMPANY.offices.LA.addressLine2, regular, 11)
-  const laPhone = textImage(laPhoneText, regular, 11)
-  const nyLine1 = textImage(COMPANY.offices.NY.addressLine1, regular, 11)
-  const nyLine2 = textImage(COMPANY.offices.NY.addressLine2, regular, 11)
-  const nyPhone = textImage(nyPhoneText, regular, 11)
-  const domain = textImage(COMPANY.domain, regular, 11)
-  const handle = textImage(COMPANY.handle, regular, 11)
-
-  const spacerSrc = useSpacerImageSrc()
-
   return computed(() => {
-    const laWidth = (wordmarkPrefix.width.value ?? 168) + 10
-    const nyWidth = (wordmark.width.value && wordmarkPrefix.width.value)
-      ? Math.max(wordmark.width.value - wordmarkPrefix.width.value, 1)
-      : 139
+    const nyX = header.value?.nyX
 
-    const text = (img: { src: ComputedRef<string>, width: ComputedRef<number | undefined> }, alt: string, href?: string) =>
-      image({ src: img.src.value, width: img.width.value, height: 11, alt, href })
-    const spacer = image({ src: spacerSrc, width: 1, height: 11, alt: '' })
-
-    const nameValue = toValue(fullname)
-    const roleValue = toValue(role)
-
-    const rows = [
-      cell(image({ src: wordmark.src.value, width: wordmark.width.value, height: 39, alt: 'Walker • Drawas' }), { width: laWidth + nyWidth, colspan: 2 }),
-    ]
-    if (nameValue || roleValue) {
-      rows.push(
-        cell(nameValue ? text(name, nameValue) : spacer, { width: laWidth, paddingBottom: 10 })
-        + cell(roleValue ? text(roleImg, roleValue) : spacer, { width: nyWidth, paddingBottom: 10 }),
-      )
+    // Left image of a row: padded to the NY column so the next one lines up.
+    const left = (text: string, width: number | undefined, href: string) => {
+      const padded = nyX ? Math.max(width ?? 0, nyX) : width
+      return image({
+        src: textImageUrl(text, { ...linkOpts, scale: 1, minWidth: nyX }),
+        width: padded,
+        height: LINK_HEIGHT,
+        alt: text,
+        href,
+      })
     }
-    rows.push(
-      cell(text(laLine1, COMPANY.offices.LA.addressLine1), { width: laWidth, paddingBottom: 1 })
-      + cell(text(nyLine1, COMPANY.offices.NY.addressLine1), { width: nyWidth, paddingBottom: 1 }),
-      cell(text(laLine2, COMPANY.offices.LA.addressLine2), { width: laWidth, paddingBottom: 1 })
-      + cell(text(nyLine2, COMPANY.offices.NY.addressLine2), { width: nyWidth, paddingBottom: 1 }),
-      cell(text(laPhone, laPhoneText, officePhoneHref(COMPANY.offices.LA.phone)), { width: laWidth, paddingBottom: 10 })
-      + cell(text(nyPhone, nyPhoneText, officePhoneHref(COMPANY.offices.NY.phone)), { width: nyWidth, paddingBottom: 10 }),
-      cell(text(domain, COMPANY.domain, `https://${COMPANY.domain}`), { width: laWidth })
-      + cell(text(handle, COMPANY.handle, COMPANY.instagramUrl), { width: nyWidth }),
-    )
+    const right = (text: string, width: number | undefined, href: string) => image({
+      src: textImageUrl(text, { ...linkOpts, scale: 1 }),
+      width,
+      height: LINK_HEIGHT,
+      alt: text,
+      href,
+    })
 
-    return `<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">`
-      + `<tbody>${rows.map(row => `<tr>${row}</tr>`).join('')}</tbody></table>`
+    const alt = [COMPANY.wordmark, toValue(fullname), toValue(role)].filter(Boolean).join(' – ')
+
+    // No whitespace between the two images of a row: it would render as a gap.
+    return [
+      paragraph(image({
+        src: `${origin}/api/signature-image?${headerQuery.value}&scale=1`,
+        width: header.value?.width,
+        height: header.value?.height ?? 0,
+        alt,
+      })),
+      paragraph(
+        left(laPhoneText, widths.laPhone.value, officePhoneHref(COMPANY.offices.LA.phone))
+        + right(nyPhoneText, widths.nyPhone.value, officePhoneHref(COMPANY.offices.NY.phone)),
+        PHONE_ROW_GAP,
+      ),
+      paragraph(
+        left(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`)
+        + right(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl),
+      ),
+    ].join('')
   })
 }
 

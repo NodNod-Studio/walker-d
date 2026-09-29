@@ -1,3 +1,20 @@
+import { execSync } from 'node:child_process'
+import process from 'node:process'
+
+// Shown in the footer so it's obvious whether a deploy has gone live.
+// .git is excluded from the Docker context, so there the commit comes from
+// the SOURCE_COMMIT build arg (if the host passes one); the build time is always set.
+function commitSha() {
+  if (process.env.SOURCE_COMMIT)
+    return process.env.SOURCE_COMMIT.slice(0, 7)
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  }
+  catch {
+    return ''
+  }
+}
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-01-01',
   devtools: { enabled: true },
@@ -27,6 +44,8 @@ export default defineNuxtConfig({
     public: {
       // Public URL used for absolute og:image links (set NUXT_PUBLIC_SITE_URL in production)
       siteUrl: '',
+      buildCommit: commitSha(),
+      buildTime: new Date().toISOString(),
     },
   },
   // Keep every page and asset out of search engines. robots.txt is intentionally not

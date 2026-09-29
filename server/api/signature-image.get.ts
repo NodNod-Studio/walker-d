@@ -8,9 +8,10 @@ export default defineEventHandler(async (event) => {
   const fullname = signatureQueryText(query.fullname)
   const role = signatureQueryText(query.role)
   const scale = clampNumber(query.scale, 1, 4, 2)
+  const part = signatureQueryPart(query.part)
 
   // Bump SIGNATURE_IMAGE_VERSION whenever the layout or rendering changes, so cached PNGs are regenerated.
-  const cacheKey = createHash('sha1').update(`signature:${SIGNATURE_IMAGE_VERSION}:${scale}:${fullname}:${role}`).digest('hex')
+  const cacheKey = createHash('sha1').update(`signature:${SIGNATURE_IMAGE_VERSION}:${part}:${scale}:${fullname}:${role}`).digest('hex')
 
   setResponseHeaders(event, {
     'Content-Type': 'image/png',
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
   if (cached)
     return cached
 
-  const buffer = renderSignatureImage(fullname, role, scale)
+  const buffer = renderSignatureImage(fullname, role, scale, part)
   await cache.setItemRaw(`signature-image:${cacheKey}.png`, buffer)
 
   return buffer
