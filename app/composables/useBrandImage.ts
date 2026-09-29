@@ -1,7 +1,7 @@
 export function useTextImageUrl() {
   const origin = useRequestURL().origin
 
-  function textImageUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number, minWidth?: number }) {
+  function textImageUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number }) {
     if (!text)
       return ''
 
@@ -12,13 +12,11 @@ export function useTextImageUrl() {
       lineHeight: String(opts.lineHeight ?? 1.2),
       scale: String(opts.scale ?? 2),
     })
-    if (opts.minWidth)
-      params.set('minWidth', String(opts.minWidth))
 
     return `${origin}/api/text-image?${params.toString()}`
   }
 
-  function textImageMetaUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, minWidth?: number }) {
+  function textImageMetaUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number }) {
     if (!text)
       return ''
 
@@ -28,8 +26,6 @@ export function useTextImageUrl() {
       fontSize: String(opts.fontSize),
       lineHeight: String(opts.lineHeight ?? 1.2),
     })
-    if (opts.minWidth)
-      params.set('minWidth', String(opts.minWidth))
 
     return `${origin}/api/text-image-meta?${params.toString()}`
   }

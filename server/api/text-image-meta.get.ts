@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   await registerFonts()
 
   const query = getQuery(event)
-  const { text, weightKey, fontSize, lineHeight, minWidth } = parseTextQuery(query)
+  const { text, weightKey, fontSize, lineHeight } = parseTextQuery(query)
 
   if (!text) {
     throw createError({ statusCode: 400, statusMessage: 'Missing "text" query parameter' })
@@ -16,9 +16,7 @@ export default defineEventHandler(async (event) => {
 
   const family = FONT_FAMILIES[weightKey]
   const lines = normalizeLines(text)
-  const box = measureTextBox(lines, family, fontSize, lineHeight)
-  const width = Math.max(box.width, minWidth)
-  const { height } = box
+  const { width, height } = measureTextBox(lines, family, fontSize, lineHeight)
 
   setResponseHeaders(event, {
     'Cache-Control': 'public, max-age=31536000, immutable',

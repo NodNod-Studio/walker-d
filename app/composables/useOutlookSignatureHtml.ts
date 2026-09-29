@@ -4,15 +4,14 @@
  * inline characters of that paragraph, and CSS it doesn't know (display:block,
  * font-size:0, rgba colors…) is dropped. Each of those paragraphs also adds a
  * few px below its images (Outlook's default 11pt paragraph font), so this
- * version keeps the number of paragraphs as low as possible, with no table:
+ * version keeps the number of paragraphs as low as possible:
  * 1. one image for everything without links (wordmark, name/role, addresses);
- * 2. the two phone links side by side;
- * 3. site + Instagram side by side.
- * In rows 2 and 3 the left image is padded with transparent space up to the
- * NY column's x (`minWidth`), so the right image lines up under "DRAWAS".
+ * 2. a 2×2 table for the linked texts (phones, then site + Instagram). A table
+ *    rather than inline images side by side, since browsers may wrap between
+ *    two inline images; its first column ends where "DRAWAS" starts.
  *
  * The markup is what Word itself would save, so there is nothing to rewrite:
- * - explicit margins on each paragraph (Word's Normal style adds space after);
+ * - explicit `margin:0` on each paragraph (Word's Normal style adds space after);
  * - `font-size:1pt` + single line spacing, so the line grows to fit the image
  *   and only a ~1pt font descent is added below it. Exact spacing is avoided:
  *   it crops images in Word, and a pt value made sent rows far too tall;
@@ -53,8 +52,14 @@ function image({ src, width, height, alt, href }: OutlookImage) {
     : img
 }
 
-function paragraph(content: string, marginBottom = 0) {
-  return `<p class="MsoNormal" style="margin:0 0 ${pt(marginBottom)} 0;font-size:1.0pt;line-height:normal;font-family:Arial,sans-serif;">${content}</p>`
+function paragraph(content: string) {
+  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;line-height:normal;font-family:Arial,sans-serif;">${content}</p>`
+}
+
+function cell(content: string, width: number | undefined, paddingBottom = 0) {
+  const size = width ? `width="${width}" ` : ''
+  const style = `${width ? `width:${pt(width)};` : ''}padding:0 0 ${pt(paddingBottom)} 0;border:none;`
+  return `<td ${size}valign="top" style="${style}">${paragraph(content)}</td>`
 }
 
 const TEXT_LINE_HEIGHT = 1.2
@@ -103,19 +108,11 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
 
   return computed(() => {
     const nyX = header.value?.nyX
+    const nyColWidth = (widths.nyPhone.value && widths.handle.value)
+      ? Math.max(widths.nyPhone.value, widths.handle.value)
+      : undefined
 
-    // Left image of a row: padded to the NY column so the next one lines up.
-    const left = (text: string, width: number | undefined, href: string) => {
-      const padded = nyX ? Math.max(width ?? 0, nyX) : width
-      return image({
-        src: textImageUrl(text, { ...linkOpts, scale: 1, minWidth: nyX }),
-        width: padded,
-        height: LINK_HEIGHT,
-        alt: text,
-        href,
-      })
-    }
-    const right = (text: string, width: number | undefined, href: string) => image({
+    const link = (text: string, width: number | undefined, href: string) => image({
       src: textImageUrl(text, { ...linkOpts, scale: 1 }),
       width,
       height: LINK_HEIGHT,
@@ -125,24 +122,19 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
 
     const alt = [COMPANY.wordmark, toValue(fullname), toValue(role)].filter(Boolean).join(' – ')
 
-    // No whitespace between the two images of a row: it would render as a gap.
-    return [
-      paragraph(image({
-        src: `${origin}/api/signature-image?${headerQuery.value}&scale=1`,
-        width: header.value?.width,
-        height: header.value?.height ?? 0,
-        alt,
-      })),
-      paragraph(
-        left(laPhoneText, widths.laPhone.value, officePhoneHref(COMPANY.offices.LA.phone))
-        + right(nyPhoneText, widths.nyPhone.value, officePhoneHref(COMPANY.offices.NY.phone)),
-        PHONE_ROW_GAP,
-      ),
-      paragraph(
-        left(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`)
-        + right(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl),
-      ),
-    ].join('')
+    const links = `<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;"><tbody>`
+      + `<tr>${cell(link(laPhoneText, widths.laPhone.value, officePhoneHref(COMPANY.offices.LA.phone)), nyX, PHONE_ROW_GAP)}`
+      + `${cell(link(nyPhoneText, widths.nyPhone.value, officePhoneHref(COMPANY.offices.NY.phone)), nyColWidth, PHONE_ROW_GAP)}</tr>`
+      + `<tr>${cell(link(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`), nyX)}`
+      + `${cell(link(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl), nyColWidth)}</tr>`
+      + `</tbody></table>`
+
+    return paragraph(image({
+      src: `${origin}/api/signature-image?${headerQuery.value}&scale=1`,
+      width: header.value?.width,
+      height: header.value?.height ?? 0,
+      alt,
+    })) + links
   })
 }
 

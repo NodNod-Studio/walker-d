@@ -77,9 +77,6 @@ export function parseTextQuery(query: Record<string, unknown>) {
   const fontSize = clampNumber(query.fontSize, 8, 72, 16)
   const lineHeight = clampNumber(query.lineHeight, 0.8, 3, 1.2)
   const scale = clampNumber(query.scale, 1, 4, 3)
-  // Pads the image with transparent space on the right up to this width, so an
-  // image placed after it inline starts at a fixed x (no table column needed).
-  const minWidth = clampNumber(query.minWidth, 0, MAX_WIDTH, 0)
 
-  return { text, weightKey, fontSize, lineHeight, scale, minWidth }
+  return { text, weightKey, fontSize, lineHeight, scale }
 }
