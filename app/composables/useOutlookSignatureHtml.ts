@@ -63,8 +63,9 @@ function cell(content: string, width: number | undefined, paddingBottom = 0) {
 const TEXT_LINE_HEIGHT = 1.2
 const LINK_HEIGHT = 11
 const LINK_FONT_SIZE = 13
-// Same gap TheSignature leaves under the phone row.
-const PHONE_ROW_GAP = 10
+// Smaller than TheSignature's 10px: each Outlook paragraph already adds a few
+// px under its image, and 10px on top of that read as too much.
+const PHONE_ROW_GAP = 4
 
 /**
  * Font size that renders `baseFontSize` text at the same visual size as the
