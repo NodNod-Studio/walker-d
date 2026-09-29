@@ -16,6 +16,17 @@ function reset() {
 
 const copyAutoReset = refAutoReset(false, 2000)
 const copyAutoResetHtml = refAutoReset(false, 2000)
+const copyAutoResetOutlook = refAutoReset(false, 2000)
+
+const outlookHtml = useOutlookSignatureHtml(() => values.fullname, () => values.role)
+
+function copyOutlookSignature() {
+  const plainText = [COMPANY.wordmark, [values.fullname, values.role].filter(Boolean).join(' – ')]
+    .filter(Boolean)
+    .join('\n')
+  if (copyRawHtml(outlookHtml.value, plainText))
+    copyAutoResetOutlook.value = true
+}
 
 const tabs = [
   { id: 'custom', label: 'Custom Signature', shortLabel: 'Custom', selector: '.sign' },
@@ -240,6 +251,9 @@ async function downloadSignaturePng() {
             <div class="flex flex-wrap gap-2">
               <Button @click="copySignature(activeSelector, () => copyAutoReset = true)">
                 {{ copyAutoReset ? 'Copied!' : 'Copy Signature' }}
+              </Button>
+              <Button v-if="displayedTab === 'custom'" @click="copyOutlookSignature">
+                {{ copyAutoResetOutlook ? 'Copied!' : 'Copy for Outlook (Windows)' }}
               </Button>
               <Button @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)">
                 {{ copyAutoResetHtml ? 'Copied!' : 'Copy HTML' }}
