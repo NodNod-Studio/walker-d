@@ -12,7 +12,7 @@
  *
  * The markup is what Word itself would save, so there is nothing to rewrite:
  * - explicit `margin:0` on each paragraph (Word's Normal style adds space after);
- * - `font-size:1pt` + exact line spacing equal to the image height (see paragraph());
+ * - `font-size:1pt` + `line-height:1pt` ("at least" in Word, see paragraph());
  * - every size in pt, as styles only (no px `width`/`height` attributes);
  * - images rendered at 1x, i.e. natural size = display size. Outlook writes
  *   image sizes in inches, which Gmail drops when forwarding: a 2x image would
@@ -50,19 +50,23 @@ function image({ src, width, height, alt, href }: OutlookImage) {
 }
 
 /**
- * Browsers size every line from the paragraph's own font (Outlook's `p.MsoNormal`
- * is 11pt; Word moves our font-size onto an inner span), which leaves a few px of
- * descender space under each image. An exact line height equal to the image
- * height leaves no room for it; Word only crops images when the exact line is
- * *shorter* than them. `mso-line-height-rule` must come before `line-height`.
+ * `line-height:1pt` with no `mso-line-height-rule`, which Word reads as "at
+ * least 1pt": the line still grows to fit the image, so nothing is cropped.
+ * Browsers instead size the line from the paragraph's own font (Outlook's 11pt
+ * `p.MsoNormal`; Word moves our font-size onto an inner span) and centre that
+ * font in the line height: with a 1pt line there's no room left for descender
+ * space under the image, so each row is exactly as tall as its image.
+ * An *exact* line height the size of the image did the opposite: browsers put
+ * half of the leftover height under the baseline, i.e. under the image
+ * (~28px under the 64px header).
  */
-function paragraph(content: string, imageHeight: number) {
-  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;mso-line-height-rule:exactly;line-height:${pt(imageHeight)};font-family:Arial,sans-serif;">${content}</p>`
+function paragraph(content: string) {
+  return `<p class="MsoNormal" style="margin:0;font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;">${content}</p>`
 }
 
 function cell(content: string, width: number | undefined, paddingBottom = 0) {
   const style = `${width ? `width:${pt(width)};` : ''}padding:0 0 ${pt(paddingBottom)} 0;border:none;`
-  return `<td valign="top" style="${style}">${paragraph(content, LINK_HEIGHT)}</td>`
+  return `<td valign="top" style="${style}">${paragraph(content)}</td>`
 }
 
 const TEXT_LINE_HEIGHT = 1.2
@@ -139,7 +143,7 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
       width: header.value?.width,
       height: headerHeight,
       alt,
-    }), headerHeight) + links
+    })) + links
   })
 }
 
