@@ -53,28 +53,35 @@ Il pulsante usa un evento `copy` con `clipboardData.setData('text/html', html)`
 
 ## 3. Un solo paragrafo, righe separate da `<br>`
 
-Tutta la firma è **un unico paragrafo**, con le righe separate da `<br>`:
+Tutta la firma è **un unico paragrafo**, con **due** righe separate da un `<br>`:
 
-1. **una sola immagine** per tutto ciò che non ha link: wordmark, nome/ruolo,
-   indirizzi (`/api/signature-image?part=header`);
-2. telefono LA + telefono NY (link);
-3. sito + Instagram (link).
+1. **wordmark, nome/ruolo, indirizzi e telefoni come un unico disegno, tagliato in
+   due immagini** nel punto in cui inizia "DRAWAS"
+   (`/api/signature-image?part=left` e `part=right`). Affiancate combaciano al
+   pixel; ognuna è un link al telefono del suo ufficio;
+2. sito + Instagram (link).
 
-Lo spazio tra telefoni e sito (`PHONE_ROW_GAP`, 2px) è **dentro le immagini dei
-telefoni**: sono alte 13px invece di 11, con il testo in alto e lo spazio
-trasparente sotto (si ottiene con una `lineHeight` più alta nell'API, perché il
-testo viene disegnato in alto). Anche il blocco in alto non ha spazio sotto
-l'ultima riga di indirizzi.
+**Perché così: ogni `<br>` aggiunge spazio che non si può togliere.** La app Gmail
+dà a ogni riga un'altezza minima sua (~18px: il testo che ingrandisce), e Word
+toglie qualunque CSS che potrebbe annullarlo (`vertical-align`, `display:block`…).
+Con indirizzi e telefoni su righe diverse, sulla app i telefoni finivano ~8px più
+in basso del dovuto. Tutto ciò che deve stare a una distanza precisa va quindi
+**nella stessa immagine**; restano righe separate solo dove serve un link diverso
+per riga (sito/Instagram).
 
-Gli spazi sono piccoli perché la app Gmail aggiunge da sola ~4–5px dopo ogni riga
-(il testo che ingrandisce), e Word toglie qualunque CSS che potrebbe annullarlo. Su
-desktop quindi le righe sono un po' più strette che sulla app.
+Effetto collaterale: toccare un punto qualsiasi della colonna LA (anche indirizzi o
+nome) chiama LA, e lo stesso per NY.
 
-> Storia: prima c'era una riga separata con solo un'immagine trasparente di 4px.
-> Outlook l'ha salvata come immagine 1×1 (ha perso l'altezza) su una riga fatta
-> solo di `<br>` e span a 1pt, e la app Gmail ingrandiva quella riga a ~30px.
-> Regola: **nessuna riga senza contenuto alto**, perché i client possono
-> ingrandirla.
+Lo spazio tra telefoni e sito è dentro le immagini delle colonne (riga dei telefoni
+alta 13px: 11 di testo + 2), piccolo perché la app aggiunge già il suo dopo il
+`<br>`.
+
+> Storia:
+> - una riga separata con solo un'immagine trasparente di 4px: Outlook l'ha
+>   salvata come 1×1 e la app Gmail ingrandiva la riga a ~30px. Regola: **nessuna
+>   riga senza contenuto alto**;
+> - indirizzi (nel blocco in alto) e telefoni su righe diverse: ~8px in più tra le
+>   due sulla app. Da qui il taglio in due colonne.
 
 Perché un solo paragrafo: Word non scrive mai un vero margine superiore sui
 paragrafi (vedi sezione 5), e i client che ignorano lo `<style>` di Outlook (la
@@ -82,7 +89,7 @@ app Gmail) danno a ogni paragrafo un margine di default di ~1em. Con un paragraf
 per riga, o con una tabella (un paragrafo per cella), quel margine finisce tra le
 righe. Le righe dentro lo stesso paragrafo invece non hanno margini.
 
-L'immagine di sinistra delle righe 2 e 3 è allungata con spazio trasparente fino
+Nella riga 2 l'immagine del sito è allungata con spazio trasparente fino
 all'inizio della colonna NY (`minWidth` = prefisso "WALKER • " + 10px, `nyX`),
 così quella di destra parte sotto "DRAWAS". Tra le due immagini non ci deve essere
 nessuno spazio nell'HTML, altrimenti diventa uno spazio visibile.

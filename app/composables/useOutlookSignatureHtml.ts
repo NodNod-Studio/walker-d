@@ -4,16 +4,19 @@
  * inline characters of that paragraph, and CSS it doesn't know (display:block,
  * font-size:0, rgba colors…) is dropped. See docs/outlook-signature.md.
  *
- * The whole signature is ONE paragraph, its rows separated by <br>:
- * 1. one image for everything without links (wordmark, name/role, addresses);
- * 2. LA + NY phone links;
- * 4. site + Instagram links.
+ * The whole signature is ONE paragraph, its two rows separated by a <br>:
+ * 1. wordmark, name/role, addresses and phones, as ONE drawing cut in two
+ *    images where "DRAWAS" starts (`part=left|right`), each linked to its
+ *    office phone. Mail clients add several px after every line break (the
+ *    Gmail app ~8px, more than any image can compensate), so addresses and
+ *    phones must share one line of the email;
+ * 2. site + Instagram links.
  * A single paragraph because Word never writes a real top margin on paragraphs
  * (only `mso-margin-top-alt`, ignored by browsers), and clients that drop
  * Outlook's <head> styles (the Gmail app) then give every paragraph a default
  * ~1em margin: one paragraph per row, or a table (a paragraph per cell), puts
  * that margin between rows. Line breaks inside one paragraph have none.
- * The left image of rows 2 and 4 is padded with transparent space up to the NY
+ * The left image of row 2 is padded with transparent space up to the NY
  * column's x (`minWidth`), so the right image lines up under "DRAWAS".
  *
  * Other rules, all verified on emails sent by Outlook:
@@ -79,10 +82,6 @@ function paragraph(content: string) {
 const TEXT_LINE_HEIGHT = 1.2
 const LINK_HEIGHT = 11
 const LINK_FONT_SIZE = 13
-// Space between the phones and site/Instagram rows (TheSignature uses 10px).
-// Small because mail clients add a few px after each line on their own (the
-// Gmail app ~4-5px): 4px read as too much there.
-const PHONE_ROW_GAP = 2
 
 /**
  * Font size that renders `baseFontSize` text at the same visual size as the
@@ -97,73 +96,60 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
   const origin = useRequestURL().origin
   const { textImageUrl } = useTextImageUrl()
 
-  const headerQuery = computed(() => new URLSearchParams({
+  const columnQuery = (part: 'left' | 'right') => new URLSearchParams({
     fullname: toValue(fullname),
     role: toValue(role),
-    part: 'header',
-  }).toString())
+    part,
+  }).toString()
 
-  const { data: header } = useAsyncData(
-    () => `signature-image-meta:${headerQuery.value}`,
-    () => $fetch<{ width: number, height: number, nyX: number }>(`${origin}/api/signature-image-meta?${headerQuery.value}`),
-    { watch: [headerQuery] },
+  // Sizes of the two halves of the top block (the gap under the phones is
+  // part of them, see server/utils/signatureImage.ts).
+  const { data: columns } = useAsyncData(
+    () => `signature-columns:${toValue(fullname)}:${toValue(role)}`,
+    async () => {
+      const meta = (part: 'left' | 'right') => $fetch<{ width: number, height: number, nyX: number }>(`${origin}/api/signature-image-meta?${columnQuery(part)}`)
+      const [left, right] = await Promise.all([meta('left'), meta('right')])
+      return { left, right }
+    },
+    { watch: [() => toValue(fullname), () => toValue(role)] },
   )
 
   const linkOpts = { fontSize: oneXFontSize(LINK_FONT_SIZE, LINK_HEIGHT) }
   const linkWidth = (text: string) => useTextImageWidth(text, { ...linkOpts, displayHeight: LINK_HEIGHT })
 
-  const laPhoneText = `O: ${officePhoneDisplay(COMPANY.offices.LA.phone)}`
-  const nyPhoneText = `O: ${officePhoneDisplay(COMPANY.offices.NY.phone)}`
-
   const widths = {
-    laPhone: linkWidth(laPhoneText),
-    nyPhone: linkWidth(nyPhoneText),
     domain: linkWidth(COMPANY.domain),
     handle: linkWidth(COMPANY.handle),
   }
 
-  // The gap under the phones is transparent space at the bottom of the phone
-  // images (a taller line height; the text is drawn at the top), not a separate
-  // spacer row: the Gmail app blew a row holding just a 4px image up to ~30px.
-  const phoneOpts = {
-    ...linkOpts,
-    // Just under the target, so the rendered height (rounded up) is exactly it.
-    lineHeight: (LINK_HEIGHT + PHONE_ROW_GAP - 0.01) / linkOpts.fontSize,
-  }
-
   return computed(() => {
-    const nyX = header.value?.nyX
+    const nyX = columns.value?.left.nyX
+    const { LA, NY } = COMPANY.offices
+    const [fullnameValue, roleValue] = [toValue(fullname), toValue(role)]
 
-    // Left image of a row: padded to the NY column so the next one lines up.
-    const left = (text: string, width: number | undefined, href: string, opts = linkOpts, height = LINK_HEIGHT) => image({
-      src: textImageUrl(text, { ...opts, scale: 1, minWidth: nyX }),
-      width: nyX ? Math.max(width ?? 0, nyX) : width,
-      height,
+    const column = (part: 'left' | 'right', office: typeof LA | typeof NY, alt: string) => image({
+      src: `${origin}/api/signature-image?${columnQuery(part)}&scale=1`,
+      width: columns.value?.[part].width,
+      height: columns.value?.[part].height ?? 0,
+      alt,
+      href: officePhoneHref(office.phone),
+    })
+
+    const link = (text: string, width: number | undefined, href: string, minWidth?: number) => image({
+      src: textImageUrl(text, { ...linkOpts, scale: 1, minWidth }),
+      width: minWidth ? Math.max(width ?? 0, minWidth) : width,
+      height: LINK_HEIGHT,
       alt: text,
       href,
     })
-    const right = (text: string, width: number | undefined, href: string, opts = linkOpts, height = LINK_HEIGHT) => image({
-      src: textImageUrl(text, { ...opts, scale: 1 }),
-      width,
-      height,
-      alt: text,
-      href,
-    })
-
-    const alt = [COMPANY.wordmark, toValue(fullname), toValue(role)].filter(Boolean).join(' – ')
 
     // No whitespace between the images of a row: it would render as a gap.
     return paragraph([
-      image({
-        src: `${origin}/api/signature-image?${headerQuery.value}&scale=1`,
-        width: header.value?.width,
-        height: header.value?.height ?? 0,
-        alt,
-      }),
-      left(laPhoneText, widths.laPhone.value, officePhoneHref(COMPANY.offices.LA.phone), phoneOpts, LINK_HEIGHT + PHONE_ROW_GAP)
-      + right(nyPhoneText, widths.nyPhone.value, officePhoneHref(COMPANY.offices.NY.phone), phoneOpts, LINK_HEIGHT + PHONE_ROW_GAP),
-      left(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`)
-      + right(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl),
+      column('left', LA, [COMPANY.wordmark, fullnameValue, `O: ${officePhoneDisplay(LA.phone)}`].filter(Boolean).join(' – '))
+      + column('right', NY, [roleValue, `O: ${officePhoneDisplay(NY.phone)}`].filter(Boolean).join(' – ')),
+      // Left image padded to the NY column, so the right one lines up under "DRAWAS".
+      link(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`, nyX)
+      + link(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl),
     ].join('<br>'))
   })
 }

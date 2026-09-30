@@ -8,14 +8,22 @@ import { createCanvas } from '@napi-rs/canvas'
  * the same display box the <img> tags use, so both versions line up.
  */
 
-export const SIGNATURE_IMAGE_VERSION = 5
+export const SIGNATURE_IMAGE_VERSION = 6
 
 /**
- * 'full': the whole signature. 'header': wordmark, name/role and addresses
- * only, for the Outlook version, which adds the linked rows (phones, site,
- * Instagram) as separate images underneath so they stay clickable.
+ * - 'full': the whole signature (legacy single image).
+ * - 'header': wordmark, name/role and addresses only.
+ * - 'left' / 'right': wordmark, name/role, addresses and phones, cut in two
+ *   where "DRAWAS" starts (the NY column). For the Outlook version: the halves
+ *   sit side by side, each linked to its office phone, so addresses and phones
+ *   share one line of the email. Mail clients (the Gmail app especially) add
+ *   several px after every line break, which images can't compensate.
  */
-export type SignaturePart = 'full' | 'header'
+export type SignaturePart = 'full' | 'header' | 'left' | 'right'
+
+// Phone row in the 'left'/'right' parts: 11px text + a small gap before the
+// site/Instagram row, kept small because mail clients add space after each line.
+const COLUMNS_PHONE_ROW_HEIGHT = 13
 
 export interface SignatureTextItem {
   text: string
@@ -60,10 +68,12 @@ export function layoutSignature(fullname: string, role: string, part: SignatureP
   // In the Outlook 'header' part this is the last row: no 1px gap under it, as
   // mail clients (the Gmail app especially) already add space after each line.
   rows.push({ la: small(LA.addressLine2), ny: small(NY.addressLine2), height: part === 'header' ? 11 : 12 })
-  if (part === 'full') {
-    rows.push({ la: small(`O: ${officePhoneDisplay(LA.phone)}`), ny: small(`O: ${officePhoneDisplay(NY.phone)}`), height: 21 })
-    rows.push({ la: small(COMPANY.domain), ny: small(COMPANY.handle), height: 11 })
+  if (part !== 'header') {
+    const phoneRowHeight = part === 'full' ? 21 : COLUMNS_PHONE_ROW_HEIGHT
+    rows.push({ la: small(`O: ${officePhoneDisplay(LA.phone)}`), ny: small(`O: ${officePhoneDisplay(NY.phone)}`), height: phoneRowHeight })
   }
+  if (part === 'full')
+    rows.push({ la: small(COMPANY.domain), ny: small(COMPANY.handle), height: 11 })
 
   // Wordmark row is 39px image + the 1px hidden-text line under it.
   const wordmarkRowHeight = 40
@@ -73,13 +83,17 @@ export function layoutSignature(fullname: string, role: string, part: SignatureP
   )
   const height = wordmarkRowHeight + rows.reduce((sum, row) => sum + row.height, 0)
 
-  return { wordmark, wordmarkRowHeight, nyX, rows, width, height }
+  // Horizontal slice of the drawing this part covers.
+  const cropX = part === 'right' ? nyX : 0
+  const cropWidth = part === 'left' ? nyX : part === 'right' ? width - nyX : width
+
+  return { wordmark, wordmarkRowHeight, nyX, rows, width: cropWidth, height, fullWidth: width, cropX }
 }
 
 export function renderSignatureImage(fullname: string, role: string, scale: number, part: SignaturePart = 'full') {
-  const { wordmark, wordmarkRowHeight, nyX, rows, width, height } = layoutSignature(fullname, role, part)
+  const { wordmark, wordmarkRowHeight, nyX, rows, width, height, fullWidth, cropX } = layoutSignature(fullname, role, part)
 
-  const canvas = createCanvas(Math.ceil(width * scale), Math.ceil(height * scale))
+  const canvas = createCanvas(Math.ceil(fullWidth * scale), Math.ceil(height * scale))
   const ctx = canvas.getContext('2d')
   ctx.scale(scale, scale)
   ctx.fillStyle = COLOR
@@ -95,11 +109,17 @@ export function renderSignatureImage(fullname: string, role: string, scale: numb
     y += row.height
   }
 
-  return canvas.toBuffer('image/png')
+  if (width === fullWidth)
+    return canvas.toBuffer('image/png')
+
+  // 'left' / 'right': cut from the same drawing, so the halves join exactly.
+  const slice = createCanvas(Math.ceil(width * scale), Math.ceil(height * scale))
+  slice.getContext('2d').drawImage(canvas, -Math.round(cropX * scale), 0)
+  return slice.toBuffer('image/png')
 }
 
 export function signatureQueryPart(value: unknown): SignaturePart {
-  return value === 'header' ? 'header' : 'full'
+  return value === 'header' || value === 'left' || value === 'right' ? value : 'full'
 }
 
 export function signatureQueryText(value: unknown) {
