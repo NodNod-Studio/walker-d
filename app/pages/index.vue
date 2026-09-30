@@ -16,9 +16,17 @@ function reset() {
 
 const copyAutoReset = refAutoReset(false, 2000)
 const copyAutoResetHtml = refAutoReset(false, 2000)
+const copyAutoResetOutlook = refAutoReset(false, 2000)
 
-// Custom tab: the MJML signature from the server (preview, copy and download all use it).
-const signature = useSignatureHtml(() => values.fullname, () => values.role)
+const outlookHtml = useOutlookSignatureHtml(() => values.fullname, () => values.role)
+
+function copyOutlookSignature() {
+  const plainText = [COMPANY.wordmark, [values.fullname, values.role].filter(Boolean).join(' – ')]
+    .filter(Boolean)
+    .join('\n')
+  if (copyRawHtml(outlookHtml.value, plainText))
+    copyAutoResetOutlook.value = true
+}
 
 const tabs = [
   { id: 'custom', label: 'Custom Signature', shortLabel: 'Custom', selector: '.sign' },
@@ -64,12 +72,6 @@ function closeMoreAfter(action: () => unknown) {
 }
 
 async function copySignature(selector: string, onCopied: () => void) {
-  if (displayedTab.value === 'custom') {
-    if (signature.value && copyRawHtml(signature.value.fragment, signature.value.text))
-      onCopied()
-    return
-  }
-
   const el = document.querySelector(selector) as HTMLElement
   if (!el)
     return
@@ -118,18 +120,12 @@ const tail = `
   </html>
 `
 
-/** Full HTML document of the active tab's signature. */
-function signatureDocument(selector: string) {
-  if (displayedTab.value === 'custom')
-    return signature.value?.document
-  const el = document.querySelector(selector) as HTMLElement | null
-  return el ? head + el.outerHTML + tail : undefined
-}
-
 async function copyHtmlSignature(selector: string, onCopied: () => void) {
-  const wrappedHtml = signatureDocument(selector)
-  if (!wrappedHtml)
+  const el = document.querySelector(selector) as HTMLElement
+  if (!el)
     return
+  const html = el.outerHTML
+  const wrappedHtml = head + html + tail
   navigator.clipboard.writeText(wrappedHtml).then(() => {
     onCopied()
   }).catch((err) => {
@@ -138,9 +134,11 @@ async function copyHtmlSignature(selector: string, onCopied: () => void) {
 }
 
 async function downloadSignature(selector: string) {
-  const wrappedHtml = signatureDocument(selector)
-  if (!wrappedHtml)
+  const el = document.querySelector(selector) as HTMLElement
+  if (!el)
     return
+  const html = el.outerHTML
+  const wrappedHtml = head + html + tail
   const blob = new Blob([wrappedHtml], { type: 'text/html' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -218,8 +216,12 @@ async function downloadSignaturePng() {
             overflow-x-auto: the email table has a fixed width that can exceed narrow phones.
           -->
           <div class="p-3 sm:p-4 rounded-1.5 bg-white shadow-[inset_0_0_0_1px_#eee] overflow-x-auto">
-            <!-- eslint-disable-next-line vue/no-v-html -- our own server-rendered signature -->
-            <div v-show="displayedTab === 'custom'" class="sign" v-html="signature?.fragment" />
+            <TheSignature
+              v-show="displayedTab === 'custom'"
+              class="sign"
+              :fullname="values.fullname"
+              :role="values.role"
+            />
             <TheSignatureImage
               v-show="displayedTab === 'image'"
               class="sign-image"
@@ -249,6 +251,9 @@ async function downloadSignaturePng() {
             <div class="flex flex-wrap gap-2">
               <Button @click="copySignature(activeSelector, () => copyAutoReset = true)">
                 {{ copyAutoReset ? 'Copied!' : 'Copy Signature' }}
+              </Button>
+              <Button v-if="displayedTab === 'custom'" @click="copyOutlookSignature">
+                {{ copyAutoResetOutlook ? 'Copied!' : 'Copy for Outlook (Windows)' }}
               </Button>
               <Button @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)">
                 {{ copyAutoResetHtml ? 'Copied!' : 'Copy HTML' }}

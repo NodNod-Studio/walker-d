@@ -1,8 +1,7 @@
 export function useTextImageUrl() {
   const origin = useRequestURL().origin
 
-  /** URL of a text rendered as an image in the brand font, via /api/text-image. */
-  function textImageUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number }) {
+  function textImageUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number, minWidth?: number }) {
     if (!text)
       return ''
 
@@ -14,8 +13,71 @@ export function useTextImageUrl() {
       scale: String(opts.scale ?? 2),
     })
 
+    if (opts.minWidth)
+      params.set('minWidth', String(opts.minWidth))
+
     return `${origin}/api/text-image?${params.toString()}`
   }
 
-  return { textImageUrl }
+  function textImageMetaUrl(text: string, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number }) {
+    if (!text)
+      return ''
+
+    const params = new URLSearchParams({
+      text,
+      weight: opts.weight ?? 'regular',
+      fontSize: String(opts.fontSize),
+      lineHeight: String(opts.lineHeight ?? 1.2),
+    })
+
+    return `${origin}/api/text-image-meta?${params.toString()}`
+  }
+
+  return { textImageUrl, textImageMetaUrl }
+}
+
+/**
+ * Outlook's Word-based rendering engine sizes <img> unreliably when only
+ * `height` is set, which is one of the ways these signatures have broken in
+ * client threads. /api/text-image-meta returns the true (unscaled) box the
+ * image was drawn at, so we can derive an exact `width` to pair with each
+ * fixed display height instead of leaving it to be inferred.
+ */
+export function useTextImageWidth(text: MaybeRefOrGetter<string>, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, displayHeight: number }) {
+  const { textImageMetaUrl } = useTextImageUrl()
+
+  const url = computed(() => textImageMetaUrl(toValue(text), opts))
+
+  const { data } = useAsyncData(
+    () => `text-image-meta:${url.value}`,
+    async () => {
+      if (!url.value)
+        return null
+      const meta = await $fetch<{ width: number, height: number }>(url.value)
+      return meta.height ? Math.round((meta.width / meta.height) * opts.displayHeight) : null
+    },
+    { watch: [url] },
+  )
+
+  return computed(() => data.value ?? undefined)
+}
+
+export function textImageStyle(width: ComputedRef<number | undefined>, height: number) {
+  return computed(() => `display:block;border:0;height:${height}px;${width.value ? `width:${width.value}px;` : ''}`)
+}
+
+/** <img> src pointing straight at /api/text-image, no client-side fetch/base64 step. */
+export function useTextImageSrc(text: MaybeRefOrGetter<string>, opts: { weight?: 'regular' | 'bold', fontSize: number, lineHeight?: number, scale?: number }) {
+  const { textImageUrl } = useTextImageUrl()
+  return computed(() => textImageUrl(toValue(text), opts))
+}
+
+/**
+ * 1x1 transparent PNG served as a static file, not a base64 data URI:
+ * Outlook desktop doesn't render base64-encoded GIFs, and a failed spacer
+ * would collapse the row height it's meant to preserve.
+ */
+export function useSpacerImageSrc() {
+  const origin = useRequestURL().origin
+  return `${origin}/spacer.png`
 }
