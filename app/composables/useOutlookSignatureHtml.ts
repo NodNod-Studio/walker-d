@@ -22,9 +22,10 @@
  * Other rules, all verified on emails sent by Outlook:
  * - `font-size:1pt` + `line-height:1pt` ("at least" in Word, see paragraph());
  * - every size in pt, as styles only (no px `width`/`height` attributes);
- * - images rendered at 1x, i.e. natural size = display size. Outlook writes
- *   image sizes in inches, which Gmail drops when forwarding: a 2x image would
- *   then show at double size, a 1x one stays right.
+ * - images rendered at IMAGE_SCALE (2x) for sharp text on retina screens,
+ *   shown at their 1x size via pt styles. Known trade-off: Outlook writes image
+ *   sizes in inches, which Gmail drops when forwarding, so a signature forwarded
+ *   from Gmail shows at double size. Set IMAGE_SCALE to 1 to avoid that.
  */
 
 const PX_TO_PT = 0.75
@@ -79,6 +80,14 @@ function paragraph(content: string) {
   return `<p class="MsoNormal" style="${PARAGRAPH_MARGIN}font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;">${content}</p>`
 }
 
+/**
+ * Pixel density of the signature images. 2 = sharp on retina screens, but a
+ * signature forwarded from Gmail shows at double size (Gmail drops Outlook's
+ * sizes and falls back to the file's natural size). 1 = safe everywhere, soft
+ * on retina. See docs/outlook-signature.md.
+ */
+const IMAGE_SCALE = 2
+
 const TEXT_LINE_HEIGHT = 1.2
 const LINK_HEIGHT = 11
 const LINK_FONT_SIZE = 13
@@ -128,7 +137,7 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
     const [fullnameValue, roleValue] = [toValue(fullname), toValue(role)]
 
     const column = (part: 'left' | 'right', office: typeof LA | typeof NY, alt: string) => image({
-      src: `${origin}/api/signature-image?${columnQuery(part)}&scale=1`,
+      src: `${origin}/api/signature-image?${columnQuery(part)}&scale=${IMAGE_SCALE}`,
       width: columns.value?.[part].width,
       height: columns.value?.[part].height ?? 0,
       alt,
@@ -136,7 +145,7 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
     })
 
     const link = (text: string, width: number | undefined, href: string, minWidth?: number) => image({
-      src: textImageUrl(text, { ...linkOpts, scale: 1, minWidth }),
+      src: textImageUrl(text, { ...linkOpts, scale: IMAGE_SCALE, minWidth }),
       width: minWidth ? Math.max(width ?? 0, minWidth) : width,
       height: LINK_HEIGHT,
       alt: text,
