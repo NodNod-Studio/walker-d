@@ -201,7 +201,14 @@ export function copyRawHtml(html: string, plainText: string) {
  * forwards the email it drops the image size, but keeps the cell width and adds
  * `max-width:100%`, so the image stays at its display size.
  * No hidden fallback text (unlike the legacy tab's regular copy).
+ *
+ * The file is kept under MAX_IMAGE_FILE_WIDTH pixels: at a full 2x (620px) Spark
+ * blew the forwarded signature up to the message width, as clients treat images
+ * over ~600px as full-width content. The split signature's images (≤338px) are
+ * fine.
  */
+const MAX_IMAGE_FILE_WIDTH = 600
+
 export function useOutlookImageSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>) {
   const origin = useRequestURL().origin
 
@@ -214,8 +221,12 @@ export function useOutlookImageSignatureHtml(fullname: MaybeRefOrGetter<string>,
   )
 
   return computed(() => {
+    // Density just under the file width cap (rounded down), 2x when it fits.
+    const scale = size.value
+      ? Math.min(IMAGE_SCALE, Math.floor(MAX_IMAGE_FILE_WIDTH / size.value.width * 100) / 100)
+      : IMAGE_SCALE
     const content = image({
-      src: `${origin}/api/signature-image?${query.value}&scale=${IMAGE_SCALE}`,
+      src: `${origin}/api/signature-image?${query.value}&scale=${scale}`,
       width: size.value?.width,
       height: size.value?.height ?? 0,
       alt: [COMPANY.wordmark, toValue(fullname), toValue(role)].filter(Boolean).join(' – '),

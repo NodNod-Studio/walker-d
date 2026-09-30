@@ -83,6 +83,13 @@ intera a 2x (es. 620×234px di file, mostrata 310×117) in una tabella di **una
 cella larga quanto l'immagine**, link al sito. Non contiene il testo nascosto
 "Walker Drawas" che c'è nella copia normale del tab.
 
+**Il file resta sotto i 600px di larghezza** (`MAX_IMAGE_FILE_WIDTH`): a 2x pieno
+(620px) **Spark**, inoltrando, allargava la firma a tutta la larghezza del
+messaggio. Molti client trattano le immagini oltre ~600px come contenuti a tutta
+larghezza. La densità scende quanto basta (es. 1.93× → 599px per una firma da
+310px); le immagini della firma divisa (≤338px) non ne hanno bisogno. *Da
+verificare su Spark.*
+
 ## Dove sta il codice
 
 | File | Cosa fa |
