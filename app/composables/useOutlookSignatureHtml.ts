@@ -151,7 +151,7 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
     const [fullnameValue, roleValue] = [toValue(fullname), toValue(role)]
 
     const column = (part: 'left' | 'right', office: typeof LA | typeof NY, alt: string) => image({
-      src: `${origin}/api/signature-image?${columnQuery(part)}&scale=${IMAGE_SCALE}`,
+      src: `${origin}/api/signature-image?${columnQuery(part)}&scale=${IMAGE_SCALE}&v=${SIGNATURE_IMAGE_VERSION}`,
       width: columns.value?.[part].width,
       height: columns.value?.[part].height ?? 0,
       alt,
@@ -233,7 +233,7 @@ export function useOutlookImageSignatureHtml(fullname: MaybeRefOrGetter<string>,
       ? Math.min(IMAGE_SCALE, Math.floor(MAX_IMAGE_FILE_WIDTH / size.value.width * 100) / 100)
       : IMAGE_SCALE
     const content = image({
-      src: `${origin}/api/signature-image?${query.value}&scale=${scale}`,
+      src: `${origin}/api/signature-image?${query.value}&scale=${scale}&v=${SIGNATURE_IMAGE_VERSION}`,
       width: size.value?.width,
       height: size.value?.height ?? 0,
       alt: [COMPANY.wordmark, toValue(fullname), toValue(role)].filter(Boolean).join(' – '),

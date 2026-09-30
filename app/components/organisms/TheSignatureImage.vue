@@ -11,7 +11,7 @@ const SCALE = 2
 
 const origin = useRequestURL().origin
 const query = computed(() => new URLSearchParams({ fullname: props.fullname, role: props.role }).toString())
-const src = computed(() => `${origin}/api/signature-image?${query.value}&scale=${SCALE}`)
+const src = computed(() => `${origin}/api/signature-image?${query.value}&scale=${SCALE}&v=${SIGNATURE_IMAGE_VERSION}`)
 
 /**
  * The PNG is rendered at SCALE× for retina sharpness, so its display size

@@ -8,8 +8,6 @@ import { createCanvas } from '@napi-rs/canvas'
  * the same display box the <img> tags use, so both versions line up.
  */
 
-export const SIGNATURE_IMAGE_VERSION = 7
-
 /**
  * - 'full': the whole signature (legacy single image).
  * - 'header': wordmark, name/role and addresses only.
@@ -21,14 +19,14 @@ export const SIGNATURE_IMAGE_VERSION = 7
  */
 export type SignaturePart = 'full' | 'header' | 'left' | 'right'
 
-// Phone row in the 'left'/'right' parts: 11px text + a gap before the
-// site/Instagram row. Gmail desktop and Outlook show exactly this gap, the
-// Gmail app adds ~8px of its own after the line break.
-// - production: 2px (tight on desktop/Outlook, right on the app);
-// - dev mode (`?dev-mode` on the generator page): 6px, being evaluated as a
-//   compromise, since 2px looks "collapsed" on desktop and in Outlook.
-const COLUMNS_PHONE_ROW_HEIGHT = 13
-const DEV_COLUMNS_PHONE_ROW_HEIGHT = 17
+// Phone row in the 'left'/'right' parts: 11px text + 6px gap before the
+// site/Instagram row. A compromise: Gmail desktop and Outlook show exactly this
+// gap, the Gmail app adds ~8px of its own after the line break (2px looked
+// "collapsed" on desktop and in Outlook). Validated in dev mode.
+const COLUMNS_PHONE_ROW_HEIGHT = 17
+// Dev mode (`?dev-mode` on the generator page) is for trying layout values
+// before shipping them. No experiment running: same as production.
+const DEV_COLUMNS_PHONE_ROW_HEIGHT = COLUMNS_PHONE_ROW_HEIGHT
 
 export interface SignatureLayoutOptions {
   /** Experimental layout values, from the generator's `?dev-mode`. */

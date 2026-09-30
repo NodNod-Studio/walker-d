@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const part = signatureQueryPart(query.part)
   const devMode = signatureQueryDevMode(query.devMode)
 
-  // Bump SIGNATURE_IMAGE_VERSION whenever the layout or rendering changes, so cached PNGs are regenerated.
+  // SIGNATURE_IMAGE_VERSION (shared/utils): bump it when the layout or rendering changes.
   const cacheKey = createHash('sha1').update(`signature:${SIGNATURE_IMAGE_VERSION}:${part}:${devMode ? 'dev:' : ''}${scale}:${fullname}:${role}`).digest('hex')
 
   setResponseHeaders(event, {

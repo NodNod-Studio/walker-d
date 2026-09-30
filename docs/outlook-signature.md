@@ -63,7 +63,7 @@ nome o indirizzi) chiama LA, e lo stesso per NY.
 
 Misure (px, alla dimensione mostrata): colonna LA 169, colonna NY 141, totale 310.
 In altezza: wordmark 40, riga nome/ruolo 21 (se presente), righe indirizzi 12, riga
-telefoni 13 (11 di testo + 2 di spazio prima di sito/Instagram; 17 in dev mode), riga link 11. Le
+telefoni 17 (11 di testo + 6 di spazio prima di sito/Instagram), riga link 11. Le
 immagini sono a 2x: il doppio dei pixel.
 
 HTML generato (semplificato, una cella):
@@ -101,8 +101,12 @@ verificare su Spark.*
 | [/api/text-image](../server/api/text-image.get.ts) | PNG di un testo nel font del brand; `minWidth` aggiunge spazio trasparente a destra |
 | [index.vue](../app/pages/index.vue) | Pulsante **Copy for Outlook (Windows)** |
 
-Se cambia il disegno delle immagini, va incrementato `SIGNATURE_IMAGE_VERSION`
-(in `signatureImage.ts`), altrimenti restano servite le immagini in cache.
+Se cambia il disegno delle immagini va incrementato `SIGNATURE_IMAGE_VERSION`
+([shared/utils/signatureImageVersion.ts](../shared/utils/signatureImageVersion.ts)).
+La versione è sia nella chiave della cache del server sia **negli URL delle
+immagini** (`v=`). Le PNG sono servite come immutabili: senza un URL nuovo browser,
+CDN e il proxy immagini di Gmail continuerebbero a mostrare l'immagine vecchia,
+stirata alla nuova dimensione scritta nell'HTML.
 
 ## 1. Outlook riscrive tutto con Word
 
@@ -166,15 +170,17 @@ successiva scende di ~8px rispetto al disegno. Per questo:
 - gli spazi "di design" tra le righe sono **dentro le immagini**, come spazio
   trasparente. Sono un compromesso: Gmail desktop e Outlook mostrano esattamente
   quello spazio, la app Gmail ci aggiunge ~8px. Tra telefoni e sito/Instagram:
-  **2px in produzione** (giusto sulla app, quasi "annullato" su desktop e in
-  Outlook), **6px in dev mode**, in valutazione.
+  **6px** (2px sembravano "annullati" su desktop e in Outlook). Valore provato in
+  dev mode e poi portato in produzione.
 
 **Dev mode.** Aprendo il generatore con `?dev-mode` nell'URL (es.
 `/?dev-mode`), **Copy for Outlook** usa i valori sperimentali del layout
 (`devMode=1` sulle API delle immagini, vedi `SignatureLayoutOptions` in
 [signatureImage.ts](../server/utils/signatureImage.ts)). Senza il parametro la
 firma è identica a quella in produzione. Le immagini dev hanno una cache separata.
-Quando un valore è confermato si sposta nel default e si toglie dal dev mode.
+Quando un valore è confermato si sposta nel default e si toglie dal dev mode. Al
+momento non ci sono esperimenti attivi: `DEV_COLUMNS_PHONE_ROW_HEIGHT` è uguale al
+valore di produzione.
 
 ## 4. Altezza delle righe: `line-height:1pt` senza regola `mso`
 
