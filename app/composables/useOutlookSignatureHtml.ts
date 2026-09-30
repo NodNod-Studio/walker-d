@@ -119,22 +119,29 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
   const origin = useRequestURL().origin
   const { textImageUrl } = useTextImageUrl()
 
+  // `?dev-mode` on the generator page: experimental layout values for the
+  // column images (see server/utils/signatureImage.ts), without touching what
+  // production users copy.
+  const route = useRoute()
+  const devMode = computed(() => 'dev-mode' in route.query)
+
   const columnQuery = (part: 'left' | 'right') => new URLSearchParams({
     fullname: toValue(fullname),
     role: toValue(role),
     part,
+    ...(devMode.value ? { devMode: '1' } : {}),
   }).toString()
 
   // Sizes of the two halves of the top block (the gap under the phones is
   // part of them, see server/utils/signatureImage.ts).
   const { data: columns } = useAsyncData(
-    () => `signature-columns:${toValue(fullname)}:${toValue(role)}`,
+    () => `signature-columns:${devMode.value ? 'dev:' : ''}${toValue(fullname)}:${toValue(role)}`,
     async () => {
       const meta = (part: 'left' | 'right') => $fetch<{ width: number, height: number, nyX: number }>(`${origin}/api/signature-image-meta?${columnQuery(part)}`)
       const [left, right] = await Promise.all([meta('left'), meta('right')])
       return { left, right }
     },
-    { watch: [() => toValue(fullname), () => toValue(role)] },
+    { watch: [() => toValue(fullname), () => toValue(role), devMode] },
   )
 
   const linkOpts = { fontSize: oneXFontSize(LINK_FONT_SIZE, LINK_HEIGHT) }

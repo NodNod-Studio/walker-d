@@ -8,7 +8,7 @@ import { createCanvas } from '@napi-rs/canvas'
  * the same display box the <img> tags use, so both versions line up.
  */
 
-export const SIGNATURE_IMAGE_VERSION = 6
+export const SIGNATURE_IMAGE_VERSION = 7
 
 /**
  * - 'full': the whole signature (legacy single image).
@@ -21,9 +21,19 @@ export const SIGNATURE_IMAGE_VERSION = 6
  */
 export type SignaturePart = 'full' | 'header' | 'left' | 'right'
 
-// Phone row in the 'left'/'right' parts: 11px text + a small gap before the
-// site/Instagram row, kept small because mail clients add space after each line.
+// Phone row in the 'left'/'right' parts: 11px text + a gap before the
+// site/Instagram row. Gmail desktop and Outlook show exactly this gap, the
+// Gmail app adds ~8px of its own after the line break.
+// - production: 2px (tight on desktop/Outlook, right on the app);
+// - dev mode (`?dev-mode` on the generator page): 6px, being evaluated as a
+//   compromise, since 2px looks "collapsed" on desktop and in Outlook.
 const COLUMNS_PHONE_ROW_HEIGHT = 13
+const DEV_COLUMNS_PHONE_ROW_HEIGHT = 17
+
+export interface SignatureLayoutOptions {
+  /** Experimental layout values, from the generator's `?dev-mode`. */
+  devMode?: boolean
+}
 
 export interface SignatureTextItem {
   text: string
@@ -51,7 +61,7 @@ function drawItem(ctx: SKRSContext2D, item: SignatureTextItem, x: number, y: num
 }
 
 /** Shared by /api/signature-image and /api/signature-image-meta so the PNG and its advertised size always agree. */
-export function layoutSignature(fullname: string, role: string, part: SignaturePart = 'full') {
+export function layoutSignature(fullname: string, role: string, part: SignaturePart = 'full', { devMode = false }: SignatureLayoutOptions = {}) {
   const { LA, NY } = COMPANY.offices
   const small = (text: string, weightKey: WeightKey = 'regular') => textItem(text, weightKey, 13, 11)
 
@@ -69,7 +79,7 @@ export function layoutSignature(fullname: string, role: string, part: SignatureP
   // mail clients (the Gmail app especially) already add space after each line.
   rows.push({ la: small(LA.addressLine2), ny: small(NY.addressLine2), height: part === 'header' ? 11 : 12 })
   if (part !== 'header') {
-    const phoneRowHeight = part === 'full' ? 21 : COLUMNS_PHONE_ROW_HEIGHT
+    const phoneRowHeight = part === 'full' ? 21 : devMode ? DEV_COLUMNS_PHONE_ROW_HEIGHT : COLUMNS_PHONE_ROW_HEIGHT
     rows.push({ la: small(`O: ${officePhoneDisplay(LA.phone)}`), ny: small(`O: ${officePhoneDisplay(NY.phone)}`), height: phoneRowHeight })
   }
   if (part === 'full')
@@ -90,8 +100,8 @@ export function layoutSignature(fullname: string, role: string, part: SignatureP
   return { wordmark, wordmarkRowHeight, nyX, rows, width: cropWidth, height, fullWidth: width, cropX }
 }
 
-export function renderSignatureImage(fullname: string, role: string, scale: number, part: SignaturePart = 'full') {
-  const { wordmark, wordmarkRowHeight, nyX, rows, width, height, fullWidth, cropX } = layoutSignature(fullname, role, part)
+export function renderSignatureImage(fullname: string, role: string, scale: number, part: SignaturePart = 'full', options: SignatureLayoutOptions = {}) {
+  const { wordmark, wordmarkRowHeight, nyX, rows, width, height, fullWidth, cropX } = layoutSignature(fullname, role, part, options)
 
   const canvas = createCanvas(Math.ceil(fullWidth * scale), Math.ceil(height * scale))
   const ctx = canvas.getContext('2d')
@@ -116,6 +126,11 @@ export function renderSignatureImage(fullname: string, role: string, scale: numb
   const slice = createCanvas(Math.ceil(width * scale), Math.ceil(height * scale))
   slice.getContext('2d').drawImage(canvas, -Math.round(cropX * scale), 0)
   return slice.toBuffer('image/png')
+}
+
+/** `devMode=1` on the image APIs (set by the generator when opened with `?dev-mode`). */
+export function signatureQueryDevMode(value: unknown) {
+  return value === '1' || value === 'true'
 }
 
 export function signatureQueryPart(value: unknown): SignaturePart {

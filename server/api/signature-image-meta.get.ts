@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
     signatureQueryText(query.fullname),
     signatureQueryText(query.role),
     signatureQueryPart(query.part),
+    { devMode: signatureQueryDevMode(query.devMode) },
   )
 
   setResponseHeaders(event, {

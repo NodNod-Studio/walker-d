@@ -63,7 +63,7 @@ nome o indirizzi) chiama LA, e lo stesso per NY.
 
 Misure (px, alla dimensione mostrata): colonna LA 169, colonna NY 141, totale 310.
 In altezza: wordmark 40, riga nome/ruolo 21 (se presente), righe indirizzi 12, riga
-telefoni 13 (11 di testo + 2 di spazio prima di sito/Instagram), riga link 11. Le
+telefoni 13 (11 di testo + 2 di spazio prima di sito/Instagram; 17 in dev mode), riga link 11. Le
 immagini sono a 2x: il doppio dei pixel.
 
 HTML generato (semplificato, una cella):
@@ -164,7 +164,17 @@ successiva scende di ~8px rispetto al disegno. Per questo:
   telefoni nelle colonne `left`/`right`);
 - restano righe separate solo dove serve un link diverso (sito / Instagram);
 - gli spazi "di design" tra le righe sono **dentro le immagini**, come spazio
-  trasparente, e piccoli, perché la app aggiunge già il suo.
+  trasparente. Sono un compromesso: Gmail desktop e Outlook mostrano esattamente
+  quello spazio, la app Gmail ci aggiunge ~8px. Tra telefoni e sito/Instagram:
+  **2px in produzione** (giusto sulla app, quasi "annullato" su desktop e in
+  Outlook), **6px in dev mode**, in valutazione.
+
+**Dev mode.** Aprendo il generatore con `?dev-mode` nell'URL (es.
+`/?dev-mode`), **Copy for Outlook** usa i valori sperimentali del layout
+(`devMode=1` sulle API delle immagini, vedi `SignatureLayoutOptions` in
+[signatureImage.ts](../server/utils/signatureImage.ts)). Senza il parametro la
+firma è identica a quella in produzione. Le immagini dev hanno una cache separata.
+Quando un valore è confermato si sposta nel default e si toglie dal dev mode.
 
 ## 4. Altezza delle righe: `line-height:1pt` senza regola `mso`
 
