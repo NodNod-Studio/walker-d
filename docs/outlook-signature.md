@@ -1,8 +1,42 @@
-# Firma per Outlook desktop (classico)
+# Firma email: come è fatta e perché
 
-Come e perché è fatta la versione generata da **Copy for Outlook (Windows)**
-([useOutlookSignatureHtml.ts](../app/composables/useOutlookSignatureHtml.ts)).
-Ogni regola qui sotto è stata verificata su email reali inviate da Outlook.
+Come e perché è fatta la firma generata dal tab **Custom Signature**, la stessa per
+tutti i client (Gmail, Apple Mail, Outlook). Le regole sono nate da Outlook
+desktop, il client più restrittivo, e ognuna è stata verificata su email reali
+inviate da Outlook.
+
+## 0. Da dove viene l'HTML
+
+- **Template:** [server/templates/signature.mjml](../server/templates/signature.mjml).
+- **Compilazione, una sola volta al build:**
+  [modules/signature-template.ts](../modules/signature-template.ts) compila l'MJML
+  (anche all'avvio di `nuxt dev`, che si riavvia se il template cambia) nel modulo
+  server `#signature-template`. `mjml` non finisce nel bundle del server.
+- **A runtime:** [/api/signature](../server/api/signature.get.ts) riempie i
+  `{{placeholder}}` ([signatureHtml.ts](../server/utils/signatureHtml.ts)): URL e
+  dimensioni delle immagini, calcolate con lo stesso codice che le disegna.
+- **Output:** `fragment` (il paragrafo della firma: anteprima e **Copy Signature**),
+  `document` (il documento MJML completo: **Copy HTML** e **Download HTML**),
+  `text` (testo semplice negli appunti).
+
+Il template usa solo componenti MJML (`mj-section`, `mj-group`, `mj-column`,
+`mj-image`, `mj-spacer`, `mj-text`). Due tipi di placeholder:
+
+- `[[…]]` **al build**: le misure del layout, perché MJML ha bisogno di px reali per
+  costruire le tabelle. Il modulo le calcola dal font del wordmark: colonna LA =
+  fino all'inizio di "DRAWAS" + 10px (169px), colonna NY = il resto (141px),
+  totale = larghezza del wordmark (310px).
+- `{{…}}` **a runtime**: URL delle immagini, link, alt.
+
+Le immagini dei link sono generate larghe esattamente quanto la loro colonna (con
+spazio trasparente a destra, `minWidth`), così il template non dipende dalla
+larghezza dei singoli testi.
+
+> **Da verificare:** MJML genera 4–5 tabelle annidate per immagine, più le tabelle
+> "fantasma" `<!--[if mso]>` per Outlook. Nelle versioni precedenti (sezioni 3–5)
+> le tabelle incollate in Outlook creavano un paragrafo per cella e quindi spazi
+> tra le righe, soprattutto sulla app Gmail. Questa versione va testata con la
+> procedura della sezione 8.
 
 ## 1. Outlook riscrive tutto con Word
 
@@ -32,16 +66,21 @@ cambiare, e verificare il risultato **dopo l'invio**, non in Word.
 
 ## 2. Copiare l'HTML esatto
 
-Copiare una selezione della pagina (Copy Signature) fa riscrivere l'HTML anche al
-browser: Chrome aggiunge gli stili calcolati e toglie le proprietà che non conosce
-(`mso-*`). Anche `navigator.clipboard.write` sanifica l'HTML.
+Copiare una selezione della pagina fa riscrivere l'HTML anche al browser: Chrome
+aggiunge gli stili calcolati e toglie le proprietà che non conosce (`mso-*`). Anche
+`navigator.clipboard.write` sanifica l'HTML.
 
-Il pulsante usa un evento `copy` con `clipboardData.setData('text/html', html)`
-(`copyRawHtml`), che mette negli appunti la stringa esattamente com'è.
+**Copy Signature** usa un evento `copy` con `clipboardData.setData('text/html', html)`
+([copyRawHtml](../app/utils/clipboard.ts)), che mette negli appunti la stringa
+esattamente com'è.
 
-## 3. Un solo paragrafo, righe separate da `<br>`
+## 3. Versione precedente: un solo paragrafo, righe separate da `<br>`
 
-Tutta la firma è **un unico paragrafo**, con le righe separate da `<br>`:
+> Questa era la struttura prima di passare ai componenti MJML (sezione 0). Resta
+> documentata perché è l'ultima verificata su email reali: se la versione MJML dà
+> problemi in Outlook o sulla app Gmail, è la base a cui tornare.
+
+Tutta la firma era **un unico paragrafo**, con le righe separate da `<br>`:
 
 1. **una sola immagine** per tutto ciò che non ha link: wordmark, nome/ruolo,
    indirizzi (`/api/signature-image?part=header`);
@@ -141,7 +180,7 @@ Nell'HTML generato tutte le misure sono stili in `pt`, senza attributi
 - **Non** usare email inoltrate per il debug: Gmail riscrive l'HTML quando
   inoltra.
 - Procedura:
-  1. incolla la firma con **Copy for Outlook (Windows)**;
+  1. incolla la firma con **Copy Signature** (tab Custom Signature);
   2. invia una mail **diretta** a un indirizzo Gmail;
   3. in Outlook, trascina la mail da **Posta inviata** sulla Scrivania → `.eml`;
   4. la parte `text/html` è in base64: decodificandola si vede esattamente cosa ha

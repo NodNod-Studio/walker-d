@@ -1,0 +1,65 @@
+<!--
+  Email signature, compiled once at build time by modules/signature-template.ts.
+
+  Two kinds of placeholders:
+  - double square brackets: layout sizes, replaced at build time BEFORE
+    compiling (mjml needs real px values to build its tables). Computed from the
+    wordmark font, see the module: la = NY column's x, ny = rest of the width.
+  - double curly braces: per-signature values (image URLs, links, alt text),
+    filled at runtime by server/utils/signatureHtml.ts.
+
+  Link images are rendered exactly as wide as their column (transparent padding
+  on the right), so no per-text width is needed here.
+-->
+<mjml>
+  <mj-head>
+    <mj-title>Walker • Drawas</mj-title>
+    <mj-attributes>
+      <mj-all padding="0" />
+      <mj-section text-align="left" />
+      <mj-image align="left" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body width="[[total]]px">
+    <mj-section>
+      <mj-column width="[[total]]px">
+        <mj-image src="{{headerSrc}}" alt="{{headerAlt}}" width="[[total]]px" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-group>
+        <mj-column width="[[la]]px">
+          <mj-image src="{{laPhoneSrc}}" href="{{laPhoneHref}}" alt="{{laPhoneText}}" width="[[la]]px" height="[[linkHeight]]px" />
+        </mj-column>
+        <mj-column width="[[ny]]px">
+          <mj-image src="{{nyPhoneSrc}}" href="{{nyPhoneHref}}" alt="{{nyPhoneText}}" width="[[ny]]px" height="[[linkHeight]]px" />
+        </mj-column>
+      </mj-group>
+    </mj-section>
+
+    <mj-section>
+      <mj-column width="[[total]]px">
+        <mj-spacer height="[[rowGap]]px" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-group>
+        <mj-column width="[[la]]px">
+          <mj-image src="{{domainSrc}}" href="{{domainHref}}" alt="{{domainText}}" width="[[la]]px" height="[[linkHeight]]px" />
+        </mj-column>
+        <mj-column width="[[ny]]px">
+          <mj-image src="{{handleSrc}}" href="{{handleHref}}" alt="{{handleText}}" width="[[ny]]px" height="[[linkHeight]]px" />
+        </mj-column>
+      </mj-group>
+    </mj-section>
+
+    <!-- Hidden text: iOS Mail drops signatures made only of images. -->
+    <mj-section>
+      <mj-column width="[[total]]px">
+        <mj-text font-size="1px" line-height="1px" color="#ffffff">Walker Drawas</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

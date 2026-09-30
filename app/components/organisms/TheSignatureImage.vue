@@ -25,7 +25,7 @@ const { data: size } = useAsyncData(
   { watch: [query] },
 )
 
-// Line height = image height, see TheSignature: 0 makes Outlook crop the image.
+// Line height = image height: 0 makes Outlook crop the image.
 const cellStyle = computed(() => {
   const lh = size.value ? `${size.value.height}px` : 'normal'
   return `padding:0;border:none;font-size:${lh};line-height:${lh};mso-line-height-rule:exactly;`
@@ -35,7 +35,7 @@ const alt =computed(() => [COMPANY.wordmark, props.fullname, props.role].filter(
 </script>
 
 <template>
-  <!-- Same hidden-text trick as TheSignature: iOS drops image-only signatures. -->
+  <!-- Hidden text: iOS drops image-only signatures. -->
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:none;mso-table-lspace:0pt;mso-table-rspace:0pt;font-family:Arial,Helvetica,sans-serif;mso-line-height-rule:exactly;">
     <tbody>
       <tr>
