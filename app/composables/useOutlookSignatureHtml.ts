@@ -7,7 +7,6 @@
  * The whole signature is ONE paragraph, its rows separated by <br>:
  * 1. one image for everything without links (wordmark, name/role, addresses);
  * 2. LA + NY phone links;
- * 3. a 4px transparent spacer;
  * 4. site + Instagram links.
  * A single paragraph because Word never writes a real top margin on paragraphs
  * (only `mso-margin-top-alt`, ignored by browsers), and clients that drop
@@ -122,23 +121,30 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
     handle: linkWidth(COMPANY.handle),
   }
 
-  const spacerSrc = useSpacerImageSrc()
+  // The gap under the phones is transparent space at the bottom of the phone
+  // images (a taller line height; the text is drawn at the top), not a separate
+  // spacer row: the Gmail app blew a row holding just a 4px image up to ~30px.
+  const phoneOpts = {
+    ...linkOpts,
+    // Just under the target, so the rendered height (rounded up) is exactly it.
+    lineHeight: (LINK_HEIGHT + PHONE_ROW_GAP - 0.01) / linkOpts.fontSize,
+  }
 
   return computed(() => {
     const nyX = header.value?.nyX
 
     // Left image of a row: padded to the NY column so the next one lines up.
-    const left = (text: string, width: number | undefined, href: string) => image({
-      src: textImageUrl(text, { ...linkOpts, scale: 1, minWidth: nyX }),
+    const left = (text: string, width: number | undefined, href: string, opts = linkOpts, height = LINK_HEIGHT) => image({
+      src: textImageUrl(text, { ...opts, scale: 1, minWidth: nyX }),
       width: nyX ? Math.max(width ?? 0, nyX) : width,
-      height: LINK_HEIGHT,
+      height,
       alt: text,
       href,
     })
-    const right = (text: string, width: number | undefined, href: string) => image({
-      src: textImageUrl(text, { ...linkOpts, scale: 1 }),
+    const right = (text: string, width: number | undefined, href: string, opts = linkOpts, height = LINK_HEIGHT) => image({
+      src: textImageUrl(text, { ...opts, scale: 1 }),
       width,
-      height: LINK_HEIGHT,
+      height,
       alt: text,
       href,
     })
@@ -153,9 +159,8 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
         height: header.value?.height ?? 0,
         alt,
       }),
-      left(laPhoneText, widths.laPhone.value, officePhoneHref(COMPANY.offices.LA.phone))
-      + right(nyPhoneText, widths.nyPhone.value, officePhoneHref(COMPANY.offices.NY.phone)),
-      image({ src: spacerSrc, width: 1, height: PHONE_ROW_GAP, alt: '' }),
+      left(laPhoneText, widths.laPhone.value, officePhoneHref(COMPANY.offices.LA.phone), phoneOpts, LINK_HEIGHT + PHONE_ROW_GAP)
+      + right(nyPhoneText, widths.nyPhone.value, officePhoneHref(COMPANY.offices.NY.phone), phoneOpts, LINK_HEIGHT + PHONE_ROW_GAP),
       left(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`)
       + right(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl),
     ].join('<br>'))

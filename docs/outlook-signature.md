@@ -58,8 +58,17 @@ Tutta la firma è **un unico paragrafo**, con le righe separate da `<br>`:
 1. **una sola immagine** per tutto ciò che non ha link: wordmark, nome/ruolo,
    indirizzi (`/api/signature-image?part=header`);
 2. telefono LA + telefono NY (link);
-3. un'immagine trasparente alta 4px, per lo spazio tra telefoni e sito;
-4. sito + Instagram (link).
+3. sito + Instagram (link).
+
+I 4px tra telefoni e sito sono **dentro le immagini dei telefoni**: sono alte 15px
+invece di 11, con il testo in alto e 4px trasparenti sotto (si ottengono con una
+`lineHeight` più alta nell'API, perché il testo viene disegnato in alto).
+
+> Storia: prima c'era una riga separata con solo un'immagine trasparente di 4px.
+> Outlook l'ha salvata come immagine 1×1 (ha perso l'altezza) su una riga fatta
+> solo di `<br>` e span a 1pt, e la app Gmail ingrandiva quella riga a ~30px.
+> Regola: **nessuna riga senza contenuto alto**, perché i client possono
+> ingrandirla.
 
 Perché un solo paragrafo: Word non scrive mai un vero margine superiore sui
 paragrafi (vedi sezione 5), e i client che ignorano lo `<style>` di Outlook (la
@@ -67,7 +76,7 @@ app Gmail) danno a ogni paragrafo un margine di default di ~1em. Con un paragraf
 per riga, o con una tabella (un paragrafo per cella), quel margine finisce tra le
 righe. Le righe dentro lo stesso paragrafo invece non hanno margini.
 
-L'immagine di sinistra delle righe 2 e 4 è allungata con spazio trasparente fino
+L'immagine di sinistra delle righe 2 e 3 è allungata con spazio trasparente fino
 all'inizio della colonna NY (`minWidth` = prefisso "WALKER • " + 10px, `nyX`),
 così quella di destra parte sotto "DRAWAS". Tra le due immagini non ci deve essere
 nessuno spazio nell'HTML, altrimenti diventa uno spazio visibile.
