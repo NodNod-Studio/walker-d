@@ -61,7 +61,7 @@ function selectTab(id: TabId) {
 
 onBeforeUnmount(() => clearTimeout(tabTimer))
 
-// Mobile only: secondary actions live in a bottom sheet
+// Mobile and tablet (below lg): secondary actions live in a bottom sheet
 const moreOpen = ref(false)
 
 onKeyStroke('Escape', () => {
@@ -205,7 +205,7 @@ async function downloadSignaturePng() {
             </p>
             <button
               type="button"
-              class="sm:hidden flex items-center gap-1 text-3 text-ink/50 hover:text-ink cursor-pointer"
+              class="lg:hidden flex items-center gap-1 text-3 text-ink/50 hover:text-ink cursor-pointer"
               @click="reset"
             >
               <span class="i-ph-arrow-counter-clockwise size-3.5" aria-hidden="true" />
@@ -235,8 +235,8 @@ async function downloadSignaturePng() {
 
         <!-- Keyed so the buttons are recreated with the right theme instead of animating between themes -->
         <div :key="displayedTab" class="mt-6">
-          <!-- Mobile: one primary action, the rest in the "More" sheet -->
-          <div class="flex gap-2 sm:hidden">
+          <!-- Mobile and tablet (below lg): one primary action, the rest in the "More" sheet -->
+          <div class="flex gap-2 lg:hidden">
             <Button theme="primary" size="lg" class="flex-1" @click="copySignature(activeSelector, () => copyAutoReset = true)">
               {{ copyAutoReset ? 'Copied!' : 'Copy Signature' }}
             </Button>
@@ -245,7 +245,7 @@ async function downloadSignaturePng() {
             </Button>
           </div>
 
-          <div class="hidden sm:flex flex-wrap items-center justify-between gap-3">
+          <div class="hidden lg:flex flex-wrap items-center justify-between gap-3">
             <Button @click="reset">
               Reset
             </Button>
@@ -279,7 +279,7 @@ async function downloadSignaturePng() {
         enter-from-class="opacity-0"
         leave-to-class="opacity-0"
       >
-        <div v-if="moreOpen" class="fixed inset-0 z-50 bg-ink/40 sm:hidden" @click="moreOpen = false" />
+        <div v-if="moreOpen" class="fixed inset-0 z-50 bg-ink/40 lg:hidden" @click="moreOpen = false" />
       </Transition>
       <Transition
         enter-active-class="transition-transform duration-300 ease-custom-circ"
@@ -289,11 +289,19 @@ async function downloadSignaturePng() {
       >
         <div
           v-if="moreOpen"
-          class="fixed inset-x-0 bottom-0 z-50 sm:hidden bg-white rounded-t-4 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+          class="fixed inset-x-0 bottom-0 z-50 lg:hidden mx-auto sm:max-w-120 bg-white rounded-t-4 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))]"
           role="dialog"
           aria-label="More actions"
         >
           <div class="mx-auto mb-3 w-10 h-1 rounded-full bg-neutral-200" aria-hidden="true" />
+          <button
+            type="button"
+            class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
+            @click="copyOutlookSignature"
+          >
+            <span class="i-ph-microsoft-outlook-logo size-5" aria-hidden="true" />
+            {{ copyAutoResetOutlook ? 'Copied!' : 'Copy for Outlook (Windows)' }}
+          </button>
           <button
             type="button"
             class="w-full flex items-center gap-3 px-3 py-3.5 rounded-1.5 text-3.8 text-ink text-left hover:bg-linen cursor-pointer"
