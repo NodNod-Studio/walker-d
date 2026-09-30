@@ -75,6 +75,14 @@ HTML generato (semplificato, una cella):
 </tr></tbody></table>
 ```
 
+### Variante "Image (legacy)"
+
+Anche il tab **Image (legacy)** ha il suo **Copy for Outlook (Windows)**
+(`useOutlookImageSignatureHtml`). Stesse regole, con un'unica immagine: la firma
+intera a 2x (es. 620×234px di file, mostrata 310×117) in una tabella di **una
+cella larga quanto l'immagine**, link al sito. Non contiene il testo nascosto
+"Walker Drawas" che c'è nella copia normale del tab.
+
 ## Dove sta il codice
 
 | File | Cosa fa |

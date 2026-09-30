@@ -193,3 +193,36 @@ export function copyRawHtml(html: string, plainText: string) {
     document.removeEventListener('copy', onCopy)
   }
 }
+
+/**
+ * The "Image (legacy)" signature (one PNG of the whole signature) in the same
+ * Outlook-safe markup as useOutlookSignatureHtml(): a one-cell table exactly as
+ * wide as the image, holding it at 2x with px size attributes. When Gmail
+ * forwards the email it drops the image size, but keeps the cell width and adds
+ * `max-width:100%`, so the image stays at its display size.
+ * No hidden fallback text (unlike the legacy tab's regular copy).
+ */
+export function useOutlookImageSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>) {
+  const origin = useRequestURL().origin
+
+  const query = computed(() => new URLSearchParams({ fullname: toValue(fullname), role: toValue(role) }).toString())
+
+  const { data: size } = useAsyncData(
+    () => `signature-image-meta:${query.value}`,
+    () => $fetch<{ width: number, height: number }>(`${origin}/api/signature-image-meta?${query.value}`),
+    { watch: [query] },
+  )
+
+  return computed(() => {
+    const content = image({
+      src: `${origin}/api/signature-image?${query.value}&scale=${IMAGE_SCALE}`,
+      width: size.value?.width,
+      height: size.value?.height ?? 0,
+      alt: [COMPANY.wordmark, toValue(fullname), toValue(role)].filter(Boolean).join(' – '),
+      href: `https://${COMPANY.domain}`,
+    })
+
+    return '<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">'
+      + `<tbody><tr>${cell(content, size.value?.width)}</tr></tbody></table>`
+  })
+}
