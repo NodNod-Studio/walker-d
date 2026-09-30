@@ -7,6 +7,7 @@ import {
   GuideAppleMailIos,
   GuideAppleMailMac,
   GuideGmail,
+  GuideOutlookLegacy,
   GuideOutlookMac,
   GuideOutlookWeb,
 } from '#components'
@@ -16,6 +17,7 @@ const guides = [
   { id: 'gmail', title: 'Gmail', subtitle: 'Web (mail.google.com)', icon: 'i-logos-google-gmail', videoId: '1CAKOKvPZHWtG32HV8nM8dyB48MBFUfQR', component: GuideGmail },
   { id: 'outlook-web', title: 'Outlook', subtitle: 'Web (outlook.live.com / outlook.office.com)', icon: 'i-vscode-icons-file-type-outlook', videoId: '1BEJhSOg40tJHt1P7UZ8PT4sRnwnWryW6', component: GuideOutlookWeb },
   { id: 'outlook-mac', title: 'Outlook', subtitle: 'Desktop app for macOS', icon: 'i-vscode-icons-file-type-outlook', videoId: '1p-9IVmZr8xD09ZLfrRip2RPVAQSFzR8r', component: GuideOutlookMac },
+  { id: 'outlook-legacy', title: 'Outlook', subtitle: 'Legacy desktop app (Windows / macOS)', icon: 'i-vscode-icons-file-type-outlook', videoId: '1Xj29Oe8Af1tz3VvJtTkP_VcK5OFpSeXe', component: GuideOutlookLegacy },
   { id: 'ios-mail', title: 'Apple Mail', subtitle: 'iPhone / iPad (iOS)', icon: 'i-logos-apple', videoId: '1IfV-y3hj9CkRuLsixvwGp5M0ccEEhOmO', component: GuideAppleMailIos },
   { id: 'apple-mail-mac', title: 'Apple Mail', subtitle: 'macOS', icon: 'i-logos-apple', videoId: '1pv2n2w8zZm49VcqM-rV0IloQGKXnrUTN', component: GuideAppleMailMac },
 ]
