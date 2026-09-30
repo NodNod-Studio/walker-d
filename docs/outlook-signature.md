@@ -8,8 +8,9 @@ ripeterli.
 
 ## In breve: le regole
 
-1. **Un solo paragrafo** per tutta la firma, righe separate da `<br>`. Niente
-   tabelle, niente `<div>`, niente paragrafi multipli.
+1. **Una tabella di una sola riga**, due celle a larghezza fissa (LA / NY). In
+   ogni cella **un solo paragrafo**, righe separate da `<br>`. Mai più di una riga
+   di tabella, niente `<div>`. *In test (sezione 6).*
 2. **Il minor numero di righe possibile.** Ogni `<br>` aggiunge uno spazio che
    alcuni client (la app Gmail) ingrandiscono e che non si può togliere. Tutto ciò
    che deve stare a una distanza precisa va **nella stessa immagine**.
@@ -18,9 +19,10 @@ ripeterli.
 4. Stile del paragrafo: `font-size:1pt; line-height:1pt` **senza**
    `mso-line-height-rule`, margini `.05pt`.
 5. **Immagini a 2x** (`IMAGE_SCALE = 2`) **con attributi `width`/`height` in
-   px**: senza gli attributi la firma esce gigante (sezione 6). *In test.*
+   px**, dentro celle con `width` in px: senza attributi la firma esce gigante,
+   senza celle esce gigante quando Gmail la inoltra (sezione 6). *In test.*
 6. Dimensioni in **pt** negli `style`, più gli attributi `width`/`height` in px.
-7. **Nessuno spazio** nell'HTML tra due immagini della stessa riga.
+7. **Nessuno spazio** nell'HTML tra le immagini e i `<br>` di una cella.
 8. L'HTML va negli appunti **così com'è** (evento `copy`), mai copiando la
    selezione della pagina.
 9. Si verifica sull'**email inviata** (`.eml`), non su Word e non su email
@@ -29,37 +31,41 @@ ripeterli.
 ## La struttura finale
 
 ```
-┌───────────────────────────── riga 1 ──────────────────────────────┐
-│ [immagine "left", link tel. LA] [immagine "right", link tel. NY]   │
-│  WALKER •                          DRAWAS                          │
-│  Nome                              Ruolo                           │
-│  8057 Beverly Blvd., Suite 100     118 Mercer Street, Floor 2      │
-│  Los Angeles, CA, 90048            New York, NY, 10012             │
-│  O: (310) 854-6700                 O: (646) 370-4096               │
-├──────────────────────────────── <br> ─────────────────────────────┤
-│ [walkerdrawas.com + spazio trasparente] [@walkerdrawas]            │
-└───────────────────────────── riga 2 ──────────────────────────────┘
+┌─ <td width=169> ─────────────────────┬─ <td width=141> ──────────────────┐
+│ [immagine "left", link tel. LA]      │ [immagine "right", link tel. NY]  │
+│  WALKER •                            │  DRAWAS                           │
+│  Nome                                │  Ruolo                            │
+│  8057 Beverly Blvd., Suite 100       │  118 Mercer Street, Floor 2       │
+│  Los Angeles, CA, 90048              │  New York, NY, 10012              │
+│  O: (310) 854-6700                   │  O: (646) 370-4096                │
+│ <br>                                 │ <br>                              │
+│ [walkerdrawas.com]                   │ [@walkerdrawas]                   │
+└──────────────────────────────────────┴───────────────────────────────────┘
 ```
 
-- **Riga 1:** wordmark, nome/ruolo, indirizzi e telefoni sono **un unico disegno**
-  tagliato in due immagini nel punto in cui inizia "DRAWAS"
-  (`/api/signature-image?part=left` e `?part=right`). Affiancate combaciano al
-  pixel. Ognuna è un link al telefono del suo ufficio.
-- **Riga 2:** sito e Instagram, due link separati. L'immagine del sito è allungata
-  con spazio trasparente fino all'inizio della colonna NY (`minWidth` = `nyX`), così
-  Instagram parte sotto "DRAWAS".
+- **Una riga di tabella, due celle** a larghezza fissa: 169px (LA) e 141px (NY).
+- In ogni cella un paragrafo con due righe:
+  1. la sua metà di un **unico disegno** (wordmark, nome/ruolo, indirizzi,
+     telefono) tagliato nel punto in cui inizia "DRAWAS"
+     (`/api/signature-image?part=left` e `?part=right`). Affiancate combaciano al
+     pixel; ognuna è un link al telefono del suo ufficio;
+  2. il link al sito (LA) o a Instagram (NY).
 
 Effetto collaterale accettato: toccare un punto qualsiasi della colonna LA (anche
 nome o indirizzi) chiama LA, e lo stesso per NY.
 
-Misure (px, a 1x): colonna LA 169, colonna NY 141, totale 310. In altezza: wordmark
-40, riga nome/ruolo 21 (se presente), righe indirizzi 12, riga telefoni 13 (11 di
-testo + 2 di spazio prima di sito/Instagram), riga link 11.
+Misure (px, alla dimensione mostrata): colonna LA 169, colonna NY 141, totale 310.
+In altezza: wordmark 40, riga nome/ruolo 21 (se presente), righe indirizzi 12, riga
+telefoni 13 (11 di testo + 2 di spazio prima di sito/Instagram), riga link 11. Le
+immagini sono a 2x: il doppio dei pixel.
 
-HTML generato (semplificato):
+HTML generato (semplificato, una cella):
 
 ```html
-<p class="MsoNormal" style="margin-top:.05pt;margin-right:0;margin-bottom:.05pt;margin-left:0;font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;"><a href="tel:+13108546700"><img src="…/api/signature-image?…&part=left&scale=1" style="width:126.75pt;height:73.5pt;border:0;"></a><a href="tel:+16463704096"><img src="…&part=right&scale=1" style="width:105.75pt;height:73.5pt;border:0;"></a><br><a href="https://walkerdrawas.com"><img src="…/api/text-image?…&minWidth=169" style="width:126.75pt;height:8.25pt;border:0;"></a><a href="https://www.instagram.com/walkerdrawas/"><img src="…" style="width:53.25pt;height:8.25pt;border:0;"></a></p>
+<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;…"><tbody><tr>
+<td width="169" valign="top" style="width:126.75pt;padding:0;border:none;"><p class="MsoNormal" style="margin-top:.05pt;margin-right:0;margin-bottom:.05pt;margin-left:0;font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;"><a href="tel:+13108546700"><img border="0" width="169" height="98" src="…/api/signature-image?…&part=left&scale=2" style="width:126.75pt;height:73.5pt;border:0;"></a><br><a href="https://walkerdrawas.com"><img border="0" width="85" height="11" src="…/api/text-image?…&scale=2" style="width:63.75pt;height:8.25pt;border:0;"></a></p></td>
+<td width="141" …>…</td>
+</tr></tbody></table>
 ```
 
 ## Dove sta il codice
@@ -112,13 +118,20 @@ Anche `navigator.clipboard.write` sanifica l'HTML.
 Il pulsante usa un evento `copy` con `clipboardData.setData('text/html', html)`
 (`copyRawHtml`), che mette negli appunti la stringa esattamente com'è.
 
-## 3. Perché un solo paragrafo e poche righe
+## 3. Perché una sola riga di tabella e poche righe di testo
 
 **Paragrafi.** Word non scrive mai un vero margine superiore sui paragrafi (vedi
 sezione 5). La app Gmail ignora lo `<style>` di Outlook e dà a ogni paragrafo il
 margine di default del browser (~1em). Con un paragrafo per riga, o con una
-tabella (Word crea un paragrafo per ogni cella), quel margine finisce **tra le
-righe**. Le righe dentro lo stesso paragrafo non hanno margini tra loro.
+tabella di più righe (Word crea un paragrafo per ogni cella), quel margine finisce
+**tra le righe**. Con **una sola riga di tabella** i paragrafi delle due celle
+stanno affiancati: il margine finisce solo **sopra** la firma. Le righe dentro lo
+stesso paragrafo non hanno margini tra loro.
+
+**Perché la tabella.** Serve per le immagini a 2x (sezione 6): quando Gmail inoltra
+un'email perde le dimensioni delle immagini ma **mantiene la larghezza delle
+celle**, e dà alle immagini `max-width:100%`. Una cella larga 169px tiene
+un'immagine da 338px alla dimensione giusta.
 
 **Righe.** Anche dentro un solo paragrafo, la app Gmail dà a ogni riga un'altezza
 minima sua (~18px, il testo che ingrandisce), e Word toglie tutto il CSS che
@@ -152,8 +165,9 @@ font-size:1pt; line-height:1pt;   /* senza mso-line-height-rule */
   Word taglia la parte alta dell'immagine (era il bug originale, con
   `line-height:0`).
 - Nelle celle di tabella Word trasforma `line-height:1pt` in
-  `mso-line-height-alt`, ignorato dai browser: un motivo in più per non usare
-  tabelle.
+  `mso-line-height-alt`, ignorato dai browser. Nella struttura attuale questo può
+  aggiungere qualche pixel tra la riga dei telefoni e quella del sito (è l'unico
+  `<br>` in ogni cella). *Da verificare nel test.*
 
 ## 5. Margini: `.05pt`, non `0`
 
@@ -169,8 +183,10 @@ default c'è una volta sola, prima della firma.
 
 ## 6. Densità delle immagini (`IMAGE_SCALE`)
 
-> **In test:** `IMAGE_SCALE = 2` con attributi `width`/`height` in px. Se la firma
-> esce ancora gigante nelle email dirette, tornare a `IMAGE_SCALE = 1`.
+> **In test:** `IMAGE_SCALE = 2` con attributi `width`/`height` in px, dentro
+> celle a larghezza fissa. Se la firma esce gigante in un'email diretta o
+> inoltrata, tornare a `IMAGE_SCALE = 1` e al paragrafo unico senza tabella
+> (commit precedente).
 
 Il problema: a 1x (dimensione naturale = dimensione mostrata) su schermi retina
 (iPhone, Mac) ogni pixel dell'immagine viene allargato su 2–3 pixel fisici e il
@@ -183,11 +199,14 @@ Cosa determina la dimensione mostrata:
 - **Solo stili in pt** (versione precedente): con immagini 2x la firma è uscita
   **gigante** anche nelle email dirette. I client ripiegano sulla dimensione reale
   del file.
-- **Stili in pt + attributi `width`/`height` in px** (versione in test): gli
-  attributi sono ciò che Word tiene come dimensione dell'immagine.
-- **Inoltro da Gmail:** Gmail perde comunque le dimensioni scritte da Outlook e usa
-  quella reale del file. Con 2x una firma **inoltrata** appare al doppio: è il
-  compromesso accettato per avere testo nitido nelle email dirette.
+- **Stili in pt + attributi `width`/`height` in px:** verificato, nelle email
+  **dirette** la firma 2x ha la dimensione giusta ed è nitida. Gli attributi sono
+  ciò che Word tiene come dimensione dell'immagine.
+- **Inoltro da Gmail:** Gmail butta via le dimensioni delle immagini e le riscrive
+  come `style="width:<larghezza del file>px;max-width:100%"`. Senza tabella la firma
+  2x inoltrata era **al doppio** (verificato). Con le celle a larghezza fissa, che
+  Gmail mantiene, `max-width:100%` riporta ogni immagine alla larghezza della cella
+  (versione in test).
 
 Un fattore intermedio (es. 1.25x) non aiuta: dove la dimensione viene persa, la
 firma apparirebbe comunque più grande del 25%.
@@ -241,7 +260,9 @@ In ordine cronologico, con il motivo:
 | Un paragrafo con `<br>` + riga spaziatrice da 4px | Outlook salva lo spaziatore 1×1, la app Gmail ingrandisce la riga a ~30px |
 | Blocco in alto + riga telefoni separata | Sulla app i telefoni ~8px più lontani dagli indirizzi |
 | MJML compilato al build (`mj-raw`, poi solo componenti) | I componenti generano 4–5 tabelle annidate per immagine + tabelle `<!--[if mso]>`: è il markup che Word trasforma in un paragrafo per cella. MJML ottimizza l'email **ricevuta** da Outlook, non una firma **incollata** in Word; con `mj-raw` non aggiungeva niente |
-| **Due colonne `left`/`right` + riga link** | ✅ Soluzione attuale |
+| Due colonne `left`/`right` + riga link, un solo paragrafo, 1x | ✅ Funziona ovunque, ma testo sgranato su retina |
+| Stessa struttura a 2x + attributi `width`/`height` | Nitida nelle email dirette; **gigante quando inoltrata da Gmail** |
+| **Una riga di tabella, due celle fisse, 2x** | Versione in test (sezioni 3 e 6) |
 
 ## Limiti noti
 

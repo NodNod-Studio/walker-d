@@ -4,20 +4,19 @@
  * inline characters of that paragraph, and CSS it doesn't know (display:block,
  * font-size:0, rgba colors…) is dropped. See docs/outlook-signature.md.
  *
- * The whole signature is ONE paragraph, its two rows separated by a <br>:
- * 1. wordmark, name/role, addresses and phones, as ONE drawing cut in two
- *    images where "DRAWAS" starts (`part=left|right`), each linked to its
- *    office phone. Mail clients add several px after every line break (the
- *    Gmail app ~8px, more than any image can compensate), so addresses and
- *    phones must share one line of the email;
- * 2. site + Instagram links.
- * A single paragraph because Word never writes a real top margin on paragraphs
- * (only `mso-margin-top-alt`, ignored by browsers), and clients that drop
- * Outlook's <head> styles (the Gmail app) then give every paragraph a default
- * ~1em margin: one paragraph per row, or a table (a paragraph per cell), puts
- * that margin between rows. Line breaks inside one paragraph have none.
- * The left image of row 2 is padded with transparent space up to the NY
- * column's x (`minWidth`), so the right image lines up under "DRAWAS".
+ * The signature is a ONE-ROW table with two fixed-width cells, LA and NY. Each
+ * cell holds a single paragraph with two lines split by a <br>:
+ * 1. its half of one drawing (wordmark, name/role, addresses, phone) cut where
+ *    "DRAWAS" starts (`part=left|right`), linked to the office phone. Mail
+ *    clients add several px after every line break (the Gmail app ~8px), so
+ *    addresses and phones must share one image;
+ * 2. the site (LA) / Instagram (NY) link.
+ * Why the table: Gmail drops image sizes when forwarding (natural file size +
+ * `max-width:100%`) but keeps cell widths, so the cells hold 2x images at their
+ * display size. Why ONE row: Word never writes a real top margin on paragraphs
+ * (only `mso-margin-top-alt`), and the Gmail app gives each paragraph a default
+ * ~1em margin: with a single row it only lands above the signature, never
+ * between its lines.
  *
  * Other rules, all verified on emails sent by Outlook:
  * - `font-size:1pt` + `line-height:1pt` ("at least" in Word, see paragraph());
@@ -86,10 +85,20 @@ function paragraph(content: string) {
 }
 
 /**
+ * Fixed-width cell: the px `width` attribute is what Gmail keeps when
+ * forwarding, and what caps the 2x images (`max-width:100%`) at display size.
+ */
+function cell(content: string, width: number | undefined) {
+  const size = width ? `width="${Math.round(width)}" ` : ''
+  const style = `${width ? `width:${pt(width)};` : ''}padding:0;border:none;`
+  return `<td ${size}valign="top" style="${style}">${paragraph(content)}</td>`
+}
+
+/**
  * Pixel density of the signature images. 2 = sharp on retina screens; the
- * display size comes from the px attributes (see image()). Gmail still drops
- * sizes when forwarding, so a forwarded signature shows at double size.
- * 1 = safe everywhere but grainy on retina. See docs/outlook-signature.md.
+ * display size comes from the px attributes (image()) and, when Gmail drops
+ * them on forward, from the cell widths (cell()). 1 = safe everywhere but
+ * grainy on retina. See docs/outlook-signature.md.
  */
 const IMAGE_SCALE = 2
 
@@ -137,7 +146,6 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
   }
 
   return computed(() => {
-    const nyX = columns.value?.left.nyX
     const { LA, NY } = COMPANY.offices
     const [fullnameValue, roleValue] = [toValue(fullname), toValue(role)]
 
@@ -149,22 +157,23 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
       href: officePhoneHref(office.phone),
     })
 
-    const link = (text: string, width: number | undefined, href: string, minWidth?: number) => image({
-      src: textImageUrl(text, { ...linkOpts, scale: IMAGE_SCALE, minWidth }),
-      width: minWidth ? Math.max(width ?? 0, minWidth) : width,
+    const link = (text: string, width: number | undefined, href: string) => image({
+      src: textImageUrl(text, { ...linkOpts, scale: IMAGE_SCALE }),
+      width,
       height: LINK_HEIGHT,
       alt: text,
       href,
     })
 
-    // No whitespace between the images of a row: it would render as a gap.
-    return paragraph([
-      column('left', LA, [COMPANY.wordmark, fullnameValue, `O: ${officePhoneDisplay(LA.phone)}`].filter(Boolean).join(' – '))
-      + column('right', NY, [roleValue, `O: ${officePhoneDisplay(NY.phone)}`].filter(Boolean).join(' – ')),
-      // Left image padded to the NY column, so the right one lines up under "DRAWAS".
-      link(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`, nyX)
-      + link(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl),
-    ].join('<br>'))
+    const la = column('left', LA, [COMPANY.wordmark, fullnameValue, `O: ${officePhoneDisplay(LA.phone)}`].filter(Boolean).join(' – '))
+      + '<br>'
+      + link(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`)
+    const ny = column('right', NY, [roleValue, `O: ${officePhoneDisplay(NY.phone)}`].filter(Boolean).join(' – '))
+      + '<br>'
+      + link(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl)
+
+    return '<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">'
+      + `<tbody><tr>${cell(la, columns.value?.left.width)}${cell(ny, columns.value?.right.width)}</tr></tbody></table>`
   })
 }
 
