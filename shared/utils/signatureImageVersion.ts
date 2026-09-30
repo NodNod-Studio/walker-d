@@ -6,4 +6,4 @@
  * served as immutable, so without a new URL browsers, the CDN and Gmail's image
  * proxy keep showing the old image, stretched to the new size in the HTML.
  */
-export const SIGNATURE_IMAGE_VERSION = 8
+export const SIGNATURE_IMAGE_VERSION = 10

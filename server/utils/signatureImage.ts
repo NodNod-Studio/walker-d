@@ -19,11 +19,11 @@ import { createCanvas } from '@napi-rs/canvas'
  */
 export type SignaturePart = 'full' | 'header' | 'left' | 'right'
 
-// Phone row in the 'left'/'right' parts: 11px text + 6px gap before the
+// Phone row in the 'left'/'right' parts: 11px text + 5px gap before the
 // site/Instagram row. A compromise: Gmail desktop and Outlook show exactly this
 // gap, the Gmail app adds ~8px of its own after the line break (2px looked
-// "collapsed" on desktop and in Outlook). Validated in dev mode.
-const COLUMNS_PHONE_ROW_HEIGHT = 17
+// "collapsed" on desktop and in Outlook, 6px too loose once forwarded).
+const COLUMNS_PHONE_ROW_HEIGHT = 16
 // Dev mode (`?dev-mode` on the generator page) is for trying layout values
 // before shipping them. No experiment running: same as production.
 const DEV_COLUMNS_PHONE_ROW_HEIGHT = COLUMNS_PHONE_ROW_HEIGHT

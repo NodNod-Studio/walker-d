@@ -63,7 +63,7 @@ nome o indirizzi) chiama LA, e lo stesso per NY.
 
 Misure (px, alla dimensione mostrata): colonna LA 169, colonna NY 141, totale 310.
 In altezza: wordmark 40, riga nome/ruolo 21 (se presente), righe indirizzi 12, riga
-telefoni 17 (11 di testo + 6 di spazio prima di sito/Instagram), riga link 11. Le
+telefoni 16 (11 di testo + 5 di spazio prima di sito/Instagram), riga link 11. Le
 immagini sono a 2x: il doppio dei pixel.
 
 HTML generato (semplificato, una cella):
@@ -170,8 +170,8 @@ successiva scende di ~8px rispetto al disegno. Per questo:
 - gli spazi "di design" tra le righe sono **dentro le immagini**, come spazio
   trasparente. Sono un compromesso: Gmail desktop e Outlook mostrano esattamente
   quello spazio, la app Gmail ci aggiunge ~8px. Tra telefoni e sito/Instagram:
-  **6px** (2px sembravano "annullati" su desktop e in Outlook). Valore provato in
-  dev mode e poi portato in produzione.
+  **5px** (2px sembravano "annullati" su desktop e in Outlook, 6px troppo larghi
+  una volta inoltrata).
 
 **Dev mode.** Aprendo il generatore con `?dev-mode` nell'URL (es.
 `/?dev-mode`), **Copy for Outlook** usa i valori sperimentali del layout
