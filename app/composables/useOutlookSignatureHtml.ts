@@ -138,12 +138,6 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
   )
 
   const linkOpts = { fontSize: oneXFontSize(LINK_FONT_SIZE, LINK_HEIGHT) }
-  const linkWidth = (text: string) => useTextImageWidth(text, { ...linkOpts, displayHeight: LINK_HEIGHT })
-
-  const widths = {
-    domain: linkWidth(COMPANY.domain),
-    handle: linkWidth(COMPANY.handle),
-  }
 
   return computed(() => {
     const { LA, NY } = COMPANY.offices
@@ -157,9 +151,12 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
       href: officePhoneHref(office.phone),
     })
 
-    const link = (text: string, width: number | undefined, href: string) => image({
-      src: textImageUrl(text, { ...linkOpts, scale: IMAGE_SCALE }),
-      width,
+    // As wide as its cell (transparent padding on the right, `minWidth`), like the
+    // column images: when Gmail forwards, `max-width:100%` only shrinks images
+    // wider than the cell, so a narrower 2x image would stay at double size.
+    const link = (text: string, columnWidth: number | undefined, href: string) => image({
+      src: textImageUrl(text, { ...linkOpts, scale: IMAGE_SCALE, minWidth: columnWidth }),
+      width: columnWidth,
       height: LINK_HEIGHT,
       alt: text,
       href,
@@ -167,10 +164,10 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
 
     const la = column('left', LA, [COMPANY.wordmark, fullnameValue, `O: ${officePhoneDisplay(LA.phone)}`].filter(Boolean).join(' – '))
       + '<br>'
-      + link(COMPANY.domain, widths.domain.value, `https://${COMPANY.domain}`)
+      + link(COMPANY.domain, columns.value?.left.width, `https://${COMPANY.domain}`)
     const ny = column('right', NY, [roleValue, `O: ${officePhoneDisplay(NY.phone)}`].filter(Boolean).join(' – '))
       + '<br>'
-      + link(COMPANY.handle, widths.handle.value, COMPANY.instagramUrl)
+      + link(COMPANY.handle, columns.value?.right.width, COMPANY.instagramUrl)
 
     return '<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">'
       + `<tbody><tr>${cell(la, columns.value?.left.width)}${cell(ny, columns.value?.right.width)}</tr></tbody></table>`

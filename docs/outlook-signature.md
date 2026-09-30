@@ -49,7 +49,14 @@ ripeterli.
      telefono) tagliato nel punto in cui inizia "DRAWAS"
      (`/api/signature-image?part=left` e `?part=right`). Affiancate combaciano al
      pixel; ognuna è un link al telefono del suo ufficio;
-  2. il link al sito (LA) o a Instagram (NY).
+  2. il link al sito (LA) o a Instagram (NY), anche questa immagine **larga
+     quanto la cella** (spazio trasparente a destra, `minWidth`).
+
+**Regola: ogni immagine è larga esattamente quanto la sua cella.** Quando Gmail
+inoltra, `max-width:100%` rimpicciolisce solo le immagini più larghe della cella:
+un'immagine 2x più stretta della cella (es. il sito, 85px mostrati = 170px di file)
+restava al doppio. Con tutte le immagini larghe quanto la cella, l'inoltro le
+riporta tutte alla dimensione giusta.
 
 Effetto collaterale accettato: toccare un punto qualsiasi della colonna LA (anche
 nome o indirizzi) chiama LA, e lo stesso per NY.
@@ -63,7 +70,7 @@ HTML generato (semplificato, una cella):
 
 ```html
 <table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;…"><tbody><tr>
-<td width="169" valign="top" style="width:126.75pt;padding:0;border:none;"><p class="MsoNormal" style="margin-top:.05pt;margin-right:0;margin-bottom:.05pt;margin-left:0;font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;"><a href="tel:+13108546700"><img border="0" width="169" height="98" src="…/api/signature-image?…&part=left&scale=2" style="width:126.75pt;height:73.5pt;border:0;"></a><br><a href="https://walkerdrawas.com"><img border="0" width="85" height="11" src="…/api/text-image?…&scale=2" style="width:63.75pt;height:8.25pt;border:0;"></a></p></td>
+<td width="169" valign="top" style="width:126.75pt;padding:0;border:none;"><p class="MsoNormal" style="margin-top:.05pt;margin-right:0;margin-bottom:.05pt;margin-left:0;font-size:1.0pt;line-height:1.0pt;font-family:Arial,sans-serif;"><a href="tel:+13108546700"><img border="0" width="169" height="98" src="…/api/signature-image?…&part=left&scale=2" style="width:126.75pt;height:73.5pt;border:0;"></a><br><a href="https://walkerdrawas.com"><img border="0" width="169" height="11" src="…/api/text-image?…&scale=2&minWidth=169" style="width:126.75pt;height:8.25pt;border:0;"></a></p></td>
 <td width="141" …>…</td>
 </tr></tbody></table>
 ```
@@ -262,7 +269,8 @@ In ordine cronologico, con il motivo:
 | MJML compilato al build (`mj-raw`, poi solo componenti) | I componenti generano 4–5 tabelle annidate per immagine + tabelle `<!--[if mso]>`: è il markup che Word trasforma in un paragrafo per cella. MJML ottimizza l'email **ricevuta** da Outlook, non una firma **incollata** in Word; con `mj-raw` non aggiungeva niente |
 | Due colonne `left`/`right` + riga link, un solo paragrafo, 1x | ✅ Funziona ovunque, ma testo sgranato su retina |
 | Stessa struttura a 2x + attributi `width`/`height` | Nitida nelle email dirette; **gigante quando inoltrata da Gmail** |
-| **Una riga di tabella, due celle fisse, 2x** | Versione in test (sezioni 3 e 6) |
+| Una riga di tabella, due celle fisse, 2x | Perfetta, inoltro compreso, tranne sito e Instagram: immagini più strette della cella, restavano al doppio |
+| **Stessa, con tutte le immagini larghe quanto la cella** | Versione in test (sezioni 3 e 6) |
 
 ## Limiti noti
 
