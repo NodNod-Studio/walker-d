@@ -8,7 +8,7 @@ import { createCanvas } from '@napi-rs/canvas'
  * the same display box the <img> tags use, so both versions line up.
  */
 
-export const SIGNATURE_IMAGE_VERSION = 4
+export const SIGNATURE_IMAGE_VERSION = 5
 
 /**
  * 'full': the whole signature. 'header': wordmark, name/role and addresses
@@ -57,7 +57,9 @@ export function layoutSignature(fullname: string, role: string, part: SignatureP
   if (fullname || role)
     rows.push({ la: fullname ? small(fullname, 'bold') : undefined, ny: role ? small(role, 'bold') : undefined, height: 21 })
   rows.push({ la: small(LA.addressLine1), ny: small(NY.addressLine1), height: 12 })
-  rows.push({ la: small(LA.addressLine2), ny: small(NY.addressLine2), height: 12 })
+  // In the Outlook 'header' part this is the last row: no 1px gap under it, as
+  // mail clients (the Gmail app especially) already add space after each line.
+  rows.push({ la: small(LA.addressLine2), ny: small(NY.addressLine2), height: part === 'header' ? 11 : 12 })
   if (part === 'full') {
     rows.push({ la: small(`O: ${officePhoneDisplay(LA.phone)}`), ny: small(`O: ${officePhoneDisplay(NY.phone)}`), height: 21 })
     rows.push({ la: small(COMPANY.domain), ny: small(COMPANY.handle), height: 11 })

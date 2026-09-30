@@ -79,9 +79,10 @@ function paragraph(content: string) {
 const TEXT_LINE_HEIGHT = 1.2
 const LINK_HEIGHT = 11
 const LINK_FONT_SIZE = 13
-// Space between the phones and site/Instagram rows (TheSignature uses 10px;
-// that read as too much here).
-const PHONE_ROW_GAP = 4
+// Space between the phones and site/Instagram rows (TheSignature uses 10px).
+// Small because mail clients add a few px after each line on their own (the
+// Gmail app ~4-5px): 4px read as too much there.
+const PHONE_ROW_GAP = 2
 
 /**
  * Font size that renders `baseFontSize` text at the same visual size as the

@@ -60,9 +60,15 @@ Tutta la firma è **un unico paragrafo**, con le righe separate da `<br>`:
 2. telefono LA + telefono NY (link);
 3. sito + Instagram (link).
 
-I 4px tra telefoni e sito sono **dentro le immagini dei telefoni**: sono alte 15px
-invece di 11, con il testo in alto e 4px trasparenti sotto (si ottengono con una
-`lineHeight` più alta nell'API, perché il testo viene disegnato in alto).
+Lo spazio tra telefoni e sito (`PHONE_ROW_GAP`, 2px) è **dentro le immagini dei
+telefoni**: sono alte 13px invece di 11, con il testo in alto e lo spazio
+trasparente sotto (si ottiene con una `lineHeight` più alta nell'API, perché il
+testo viene disegnato in alto). Anche il blocco in alto non ha spazio sotto
+l'ultima riga di indirizzi.
+
+Gli spazi sono piccoli perché la app Gmail aggiunge da sola ~4–5px dopo ogni riga
+(il testo che ingrandisce), e Word toglie qualunque CSS che potrebbe annullarlo. Su
+desktop quindi le righe sono un po' più strette che sulla app.
 
 > Storia: prima c'era una riga separata con solo un'immagine trasparente di 4px.
 > Outlook l'ha salvata come immagine 1×1 (ha perso l'altezza) su una riga fatta
