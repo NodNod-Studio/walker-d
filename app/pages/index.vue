@@ -238,7 +238,7 @@ async function downloadSignaturePng() {
           <!-- Mobile and tablet (below lg): one primary action, the rest in the "More" sheet -->
           <div class="flex gap-2 lg:hidden">
             <Button theme="primary" size="lg" class="flex-1" @click="copySignature(activeSelector, () => copyAutoReset = true)">
-              {{ copyAutoReset ? 'Copied!' : 'Copy Signature' }}
+              <SwapLabel :active="copyAutoReset" label="Copy Signature" active-label="Copied!" />
             </Button>
             <Button size="lg" class="!px-4.5" aria-label="More actions" :aria-expanded="moreOpen" @click="moreOpen = true">
               <span class="i-ph-dots-three-bold size-4" aria-hidden="true" />
@@ -252,13 +252,13 @@ async function downloadSignaturePng() {
 
             <div class="flex flex-wrap gap-2">
               <Button @click="copySignature(activeSelector, () => copyAutoReset = true)">
-                {{ copyAutoReset ? 'Copied!' : 'Copy Signature' }}
+                <SwapLabel :active="copyAutoReset" label="Copy Signature" active-label="Copied!" />
               </Button>
               <Button @click="copyOutlookSignature">
-                {{ copyAutoResetOutlook ? 'Copied!' : 'Copy for Outlook (Windows)' }}
+                <SwapLabel :active="copyAutoResetOutlook" label="Copy for Outlook (Windows)" active-label="Copied!" />
               </Button>
               <Button @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)">
-                {{ copyAutoResetHtml ? 'Copied!' : 'Copy HTML' }}
+                <SwapLabel :active="copyAutoResetHtml" label="Copy HTML" active-label="Copied!" />
               </Button>
               <Button :theme="displayedTab === 'custom' ? 'primary' : 'secondary'" @click="downloadSignature(activeSelector)">
                 Download HTML
@@ -300,7 +300,7 @@ async function downloadSignaturePng() {
             @click="copyOutlookSignature"
           >
             <span class="i-ph-microsoft-outlook-logo size-5" aria-hidden="true" />
-            {{ copyAutoResetOutlook ? 'Copied!' : 'Copy for Outlook (Windows)' }}
+            <SwapLabel :active="copyAutoResetOutlook" label="Copy for Outlook (Windows)" active-label="Copied!" />
           </button>
           <button
             type="button"
@@ -308,7 +308,7 @@ async function downloadSignaturePng() {
             @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)"
           >
             <span class="i-ph-code size-5" aria-hidden="true" />
-            {{ copyAutoResetHtml ? 'Copied!' : 'Copy HTML' }}
+            <SwapLabel :active="copyAutoResetHtml" label="Copy HTML" active-label="Copied!" />
           </button>
           <button
             type="button"
