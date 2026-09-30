@@ -21,9 +21,10 @@
  *
  * Other rules, all verified on emails sent by Outlook:
  * - `font-size:1pt` + `line-height:1pt` ("at least" in Word, see paragraph());
- * - every size in pt, as styles only (no px `width`/`height` attributes);
- * - images rendered at 1x (IMAGE_SCALE), i.e. natural size = display size:
- *   2x images showed at double size (the pt styles alone don't hold them).
+ * - every size in pt as styles, plus px `width`/`height` attributes (image());
+ * - images rendered at 2x (IMAGE_SCALE) for sharp text on retina screens,
+ *   held at their display size by px width/height attributes (see image()).
+ *   A signature forwarded from Gmail still shows at double size.
  */
 
 const PX_TO_PT = 0.75
@@ -48,9 +49,15 @@ interface OutlookImage {
   href?: string
 }
 
+/**
+ * Display size twice: as px `width`/`height` attributes, which Word keeps as the
+ * image size (with pt styles alone it fell back to the file's natural size, so
+ * 2x images showed at double size), and as pt styles for everything else.
+ */
 function image({ src, width, height, alt, href }: OutlookImage) {
+  const size = `${width ? `width="${Math.round(width)}" ` : ''}height="${Math.round(height)}"`
   const style = `${width ? `width:${pt(width)};` : ''}height:${pt(height)};border:0;`
-  const img = `<img border="0" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" style="${style}">`
+  const img = `<img border="0" ${size} src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" style="${style}">`
   return href
     ? `<a href="${escapeHtml(href)}" style="text-decoration:none;">${img}</a>`
     : img
@@ -79,12 +86,12 @@ function paragraph(content: string) {
 }
 
 /**
- * Pixel density of the signature images: must stay 1. With 2 the signature
- * showed at double size, as mail clients fall back to the file's natural size
- * (Gmail when forwarding, and in the 2x test also direct emails).
- * See docs/outlook-signature.md.
+ * Pixel density of the signature images. 2 = sharp on retina screens; the
+ * display size comes from the px attributes (see image()). Gmail still drops
+ * sizes when forwarding, so a forwarded signature shows at double size.
+ * 1 = safe everywhere but grainy on retina. See docs/outlook-signature.md.
  */
-const IMAGE_SCALE = 1
+const IMAGE_SCALE = 2
 
 const TEXT_LINE_HEIGHT = 1.2
 const LINK_HEIGHT = 11

@@ -17,9 +17,9 @@ ripeterli.
    ingrandiscono.
 4. Stile del paragrafo: `font-size:1pt; line-height:1pt` **senza**
    `mso-line-height-rule`, margini `.05pt`.
-5. **Immagini a 1x** (`IMAGE_SCALE = 1`): dimensione naturale = dimensione
-   mostrata. Con 2x la firma esce gigante (sezione 6).
-6. Dimensioni in **pt**, solo come `style`.
+5. **Immagini a 2x** (`IMAGE_SCALE = 2`) **con attributi `width`/`height` in
+   px**: senza gli attributi la firma esce gigante (sezione 6). *In test.*
+6. Dimensioni in **pt** negli `style`, più gli attributi `width`/`height` in px.
 7. **Nessuno spazio** nell'HTML tra due immagini della stessa riga.
 8. L'HTML va negli appunti **così com'è** (evento `copy`), mai copiando la
    selezione della pagina.
@@ -167,33 +167,44 @@ Word è costretto a scriverli.
 ignorato dai browser, con qualunque sintassi. Con un solo paragrafo quel margine di
 default c'è una volta sola, prima della firma.
 
-## 6. Immagini a 1x (`IMAGE_SCALE = 1`)
+## 6. Densità delle immagini (`IMAGE_SCALE`)
 
-Le immagini sono generate **esattamente** alla dimensione in cui vengono mostrate
-(`IMAGE_SCALE = 1` in
-[useOutlookSignatureHtml.ts](../app/composables/useOutlookSignatureHtml.ts)).
+> **In test:** `IMAGE_SCALE = 2` con attributi `width`/`height` in px. Se la firma
+> esce ancora gigante nelle email dirette, tornare a `IMAGE_SCALE = 1`.
 
-**Non usare 2x.** Con immagini a densità doppia la firma esce **gigante**: gli stili
-in pt da soli non bastano a tenerle alla dimensione giusta, e i client ripiegano
-sulla dimensione reale del file.
+Il problema: a 1x (dimensione naturale = dimensione mostrata) su schermi retina
+(iPhone, Mac) ogni pixel dell'immagine viene allargato su 2–3 pixel fisici e il
+testo appare **sgranato**. Nessun accorgimento nel disegno lo risolve: sono stati
+provati l'allineamento alla griglia dei pixel e un "gamma" sul testo, con
+differenze minime.
 
-- **Email inoltrate da Gmail:** verificato fin dalla prima versione. Outlook scrive
-  le dimensioni in pollici e Gmail, quando inoltra, le perde.
-- **Email dirette:** con `IMAGE_SCALE = 2` la firma è uscita gigante anche qui.
+Cosa determina la dimensione mostrata:
 
-Il prezzo è un testo meno nitido sugli schermi retina (~9px di font su 11 pixel).
-Alla risoluzione 1x si è provato anche ad allineare la linea di base del testo alla
-griglia dei pixel: differenza trascurabile. Il limite è la risoluzione, non il
-disegno.
+- **Solo stili in pt** (versione precedente): con immagini 2x la firma è uscita
+  **gigante** anche nelle email dirette. I client ripiegano sulla dimensione reale
+  del file.
+- **Stili in pt + attributi `width`/`height` in px** (versione in test): gli
+  attributi sono ciò che Word tiene come dimensione dell'immagine.
+- **Inoltro da Gmail:** Gmail perde comunque le dimensioni scritte da Outlook e usa
+  quella reale del file. Con 2x una firma **inoltrata** appare al doppio: è il
+  compromesso accettato per avere testo nitido nelle email dirette.
+
+Un fattore intermedio (es. 1.25x) non aiuta: dove la dimensione viene persa, la
+firma apparirebbe comunque più grande del 25%.
+
+Alternativa se 2x non funziona: testo vero (font di sistema, es. Arial) invece di
+immagini per indirizzi, telefoni e link. Nitido ovunque, ma senza il font Pelikan
+(i client email non caricano font personalizzati).
 
 - Le colonne `left`/`right` sono disegnate con `scale=IMAGE_SCALE`.
 - I testi di sito/Instagram usano una dimensione del font ridotta
-  (`oneXFontSize`) tale che l'immagine sia alta esattamente 11px.
+  (`oneXFontSize`) tale che l'immagine sia alta esattamente 11px a 1x.
 
 ## 7. Unità
 
-Nell'HTML tutte le misure sono stili in `pt`, senza attributi `width`/`height` in
-px (Word riscrive comunque le dimensioni a modo suo). Le costanti nel codice
+Nell'HTML tutte le misure sono stili in `pt`, più gli attributi `width`/`height`
+in px con la dimensione mostrata: servono a tenere le immagini 2x alla dimensione
+giusta (sezione 6). Le costanti nel codice
 restano in px perché descrivono **pixel delle immagini**, che devono essere numeri
 interi; vengono convertite in pt quando si scrive l'HTML.
 
