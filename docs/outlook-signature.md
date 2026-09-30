@@ -17,8 +17,8 @@ ripeterli.
    ingrandiscono.
 4. Stile del paragrafo: `font-size:1pt; line-height:1pt` **senza**
    `mso-line-height-rule`, margini `.05pt`.
-5. **Immagini a 2x** (`IMAGE_SCALE`), mostrate alla dimensione 1x tramite gli
-   stili in pt. Vedi la sezione 6 per il compromesso con gli inoltri da Gmail.
+5. **Immagini a 1x** (`IMAGE_SCALE = 1`): dimensione naturale = dimensione
+   mostrata. Con 2x la firma esce gigante (sezione 6).
 6. Dimensioni in **pt**, solo come `style`.
 7. **Nessuno spazio** nell'HTML tra due immagini della stessa riga.
 8. L'HTML va negli appunti **così com'è** (evento `copy`), mai copiando la
@@ -167,34 +167,28 @@ Word è costretto a scriverli.
 ignorato dai browser, con qualunque sintassi. Con un solo paragrafo quel margine di
 default c'è una volta sola, prima della firma.
 
-## 6. Densità delle immagini: 2x (`IMAGE_SCALE`)
+## 6. Immagini a 1x (`IMAGE_SCALE = 1`)
 
-Le immagini hanno il doppio dei pixel della dimensione in cui vengono mostrate
-(`IMAGE_SCALE = 2` in
-[useOutlookSignatureHtml.ts](../app/composables/useOutlookSignatureHtml.ts)). La
-dimensione mostrata viene dagli stili in pt, quindi il layout non cambia.
+Le immagini sono generate **esattamente** alla dimensione in cui vengono mostrate
+(`IMAGE_SCALE = 1` in
+[useOutlookSignatureHtml.ts](../app/composables/useOutlookSignatureHtml.ts)).
 
-**Il compromesso.** Outlook scrive le dimensioni delle immagini in pollici. Quando
-un destinatario **inoltra l'email da Gmail**, Gmail le perde e usa la dimensione
-reale del file: con immagini 2x la firma inoltrata appare **al doppio**.
+**Non usare 2x.** Con immagini a densità doppia la firma esce **gigante**: gli stili
+in pt da soli non bastano a tenerle alla dimensione giusta, e i client ripiegano
+sulla dimensione reale del file.
 
-| `IMAGE_SCALE` | Email dirette | Inoltrate da Gmail |
-| --- | --- | --- |
-| `2` (attuale) | Testo nitido anche su retina | Firma al doppio della dimensione |
-| `1` | Testo morbido su retina (~9px di font su 11 pixel) | Corretta |
+- **Email inoltrate da Gmail:** verificato fin dalla prima versione. Outlook scrive
+  le dimensioni in pollici e Gmail, quando inoltra, le perde.
+- **Email dirette:** con `IMAGE_SCALE = 2` la firma è uscita gigante anche qui.
 
-Si è scelto 2 perché le email dirette sono la grande maggioranza. Per tornare
-indietro basta mettere `IMAGE_SCALE = 1`: le dimensioni restano giuste in entrambi i
-casi, perché le immagini sono disegnate esattamente al doppio (es. colonna LA
-169×98 → 338×196).
-
+Il prezzo è un testo meno nitido sugli schermi retina (~9px di font su 11 pixel).
 Alla risoluzione 1x si è provato anche ad allineare la linea di base del testo alla
 griglia dei pixel: differenza trascurabile. Il limite è la risoluzione, non il
 disegno.
 
 - Le colonne `left`/`right` sono disegnate con `scale=IMAGE_SCALE`.
 - I testi di sito/Instagram usano una dimensione del font ridotta
-  (`oneXFontSize`) tale che l'immagine sia alta esattamente 11px a 1x (22px a 2x).
+  (`oneXFontSize`) tale che l'immagine sia alta esattamente 11px.
 
 ## 7. Unità
 
@@ -228,7 +222,7 @@ In ordine cronologico, con il motivo:
 | --- | --- |
 | Tabella con un'immagine per cella, `font-size:0; line-height:0` sulle `<td>` | Word ignora gli stili sulle `<td>` e mette un paragrafo con interlinea esatta 0: **immagini tagliate** in Outlook |
 | Stessa tabella con `line-height` = altezza immagine sulle `<td>` | Nessun effetto: Word applica l'interlinea solo ai paragrafi |
-| Immagini 2x/3x (prima versione) | In Gmail **inoltrata** la firma diventa gigante (dimensioni in pollici perse). Poi reintrodotte consapevolmente come compromesso (sezione 6) |
+| Immagini 2x/3x (prima versione) | In Gmail **inoltrata** la firma diventa gigante (dimensioni in pollici perse). Riprovate con `IMAGE_SCALE = 2` sulla soluzione finale: firma gigante anche nelle email dirette |
 | HTML "stile Word" (un `<p>` per cella, pt) | Righe distanziate: lo span a 1pt non basta, conta il font del paragrafo |
 | Interlinea esatta uguale all'immagine | Nei browser metà dello spazio finisce sotto l'immagine: **righe enormi** |
 | Tabella 2×2 per i link | Su desktop ok; sulla app Gmail ogni cella/paragrafo prende ~1em di margine |
@@ -244,5 +238,4 @@ In ordine cronologico, con il motivo:
   app Gmail sono più alte: sono di Outlook, non della firma.
 - La riga è larga 310px: un client più stretto potrebbe mandare a capo l'immagine
   di destra.
-- Con `IMAGE_SCALE = 2`, una firma **inoltrata da Gmail** appare al doppio
-  (sezione 6).
+- Testo meno nitido su schermi retina, per via delle immagini a 1x (sezione 6).

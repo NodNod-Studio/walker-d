@@ -22,10 +22,8 @@
  * Other rules, all verified on emails sent by Outlook:
  * - `font-size:1pt` + `line-height:1pt` ("at least" in Word, see paragraph());
  * - every size in pt, as styles only (no px `width`/`height` attributes);
- * - images rendered at IMAGE_SCALE (2x) for sharp text on retina screens,
- *   shown at their 1x size via pt styles. Known trade-off: Outlook writes image
- *   sizes in inches, which Gmail drops when forwarding, so a signature forwarded
- *   from Gmail shows at double size. Set IMAGE_SCALE to 1 to avoid that.
+ * - images rendered at 1x (IMAGE_SCALE), i.e. natural size = display size:
+ *   2x images showed at double size (the pt styles alone don't hold them).
  */
 
 const PX_TO_PT = 0.75
@@ -81,12 +79,12 @@ function paragraph(content: string) {
 }
 
 /**
- * Pixel density of the signature images. 2 = sharp on retina screens, but a
- * signature forwarded from Gmail shows at double size (Gmail drops Outlook's
- * sizes and falls back to the file's natural size). 1 = safe everywhere, soft
- * on retina. See docs/outlook-signature.md.
+ * Pixel density of the signature images: must stay 1. With 2 the signature
+ * showed at double size, as mail clients fall back to the file's natural size
+ * (Gmail when forwarding, and in the 2x test also direct emails).
+ * See docs/outlook-signature.md.
  */
-const IMAGE_SCALE = 2
+const IMAGE_SCALE = 1
 
 const TEXT_LINE_HEIGHT = 1.2
 const LINK_HEIGHT = 11
