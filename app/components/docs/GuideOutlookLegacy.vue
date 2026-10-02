@@ -1,6 +1,6 @@
 <template>
   <ol class="docs-steps">
-    <li>Fill in <b>Full Name</b> and <b>Role</b> in the generator and click <b>Copy for Outlook (Windows)</b>.</li>
+    <li>Fill in <b>Full Name</b> and <b>Role</b> in the generator and click <b>Copy for Outlook (Windows / Mac legacy)</b>.</li>
     <li>
       Open the signature settings: on Windows <b>File → Options → Mail → Signatures…</b>,
       on Mac <b>Outlook → Preferences → Signatures</b>.
@@ -17,7 +17,7 @@
     <li>Click <b>New Email</b> to check the result.</li>
   </ol>
   <p class="docs-note">
-    Use <b>Copy for Outlook (Windows)</b>, not <b>Copy Signature</b>: legacy Outlook rewrites pasted signatures,
+    Use <b>Copy for Outlook (Windows / Mac legacy)</b>, not <b>Copy Signature</b>: legacy Outlook rewrites pasted signatures,
     and this version is built to survive it.
   </p>
 </template>

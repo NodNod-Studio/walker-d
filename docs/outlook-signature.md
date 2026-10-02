@@ -1,6 +1,6 @@
 # Firma email per Outlook (e tutti gli altri client)
 
-Come e perché è fatta la firma generata da **Copy for Outlook (Windows)**. Ogni
+Come e perché è fatta la firma generata da **Copy for Outlook (Windows / Mac legacy)**. Ogni
 regola qui sotto è stata verificata su email reali, inviate da Outlook desktop e
 lette su Gmail desktop e sulla app Gmail (iOS). È il risultato di molti tentativi:
 la sezione [Storia](#storia-cosa-non-ha-funzionato) spiega quelli falliti, per non
@@ -77,7 +77,7 @@ HTML generato (semplificato, una cella):
 
 ### Variante "Image (legacy)"
 
-Anche il tab **Image (legacy)** ha il suo **Copy for Outlook (Windows)**
+Anche il tab **Image (legacy)** ha il suo **Copy for Outlook (Windows / Mac legacy)**
 (`useOutlookImageSignatureHtml`). Stesse regole, con un'unica immagine: la firma
 intera a 2x (es. 620×234px di file, mostrata 310×117) in una tabella di **una
 cella larga quanto l'immagine**, link al sito. Non contiene il testo nascosto
@@ -99,7 +99,7 @@ verificare su Spark.*
 | [/api/signature-image](../server/api/signature-image.get.ts) | PNG della firma (o di una sua parte), con cache |
 | [/api/signature-image-meta](../server/api/signature-image-meta.get.ts) | Dimensioni della stessa immagine e `nyX` (inizio colonna NY) |
 | [/api/text-image](../server/api/text-image.get.ts) | PNG di un testo nel font del brand; `minWidth` aggiunge spazio trasparente a destra |
-| [index.vue](../app/pages/index.vue) | Pulsante **Copy for Outlook (Windows)** |
+| [index.vue](../app/pages/index.vue) | Pulsante **Copy for Outlook (Windows / Mac legacy)** |
 
 Se cambia il disegno delle immagini va incrementato `SIGNATURE_IMAGE_VERSION`
 ([shared/utils/signatureImageVersion.ts](../shared/utils/signatureImageVersion.ts)).
@@ -274,7 +274,7 @@ interi; vengono convertite in pt quando si scrive l'HTML.
 - Controllare che il footer del generatore mostri il commit appena deployato
   (se no, ricaricare forzando la cache).
 - Procedura:
-  1. copia con **Copy for Outlook (Windows)** e incolla nelle firme di Outlook
+  1. copia con **Copy for Outlook (Windows / Mac legacy)** e incolla nelle firme di Outlook
      (senza spazi dopo la firma: Outlook li salva come `&nbsp;`);
   2. invia una mail **diretta** a un indirizzo Gmail;
   3. guardala su Gmail desktop **e** sulla app Gmail (è il client più severo);

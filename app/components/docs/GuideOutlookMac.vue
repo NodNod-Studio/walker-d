@@ -11,4 +11,9 @@
     </li>
     <li>Close the Settings window and click <b>New Email</b> to check the result.</li>
   </ol>
+  <p class="docs-note">
+    On Windows, or on the legacy Mac app (with the <b>New Outlook</b> switch turned off), use
+    <b>Copy for Outlook (Windows / Mac legacy)</b> and follow the
+    <a href="#outlook-legacy" class="underline">Windows / Mac legacy guide</a> instead.
+  </p>
 </template>

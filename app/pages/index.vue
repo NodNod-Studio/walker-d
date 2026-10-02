@@ -255,7 +255,7 @@ async function downloadSignaturePng() {
                 <SwapLabel :active="copyAutoReset" label="Copy Signature" active-label="Copied!" />
               </Button>
               <Button @click="copyOutlookSignature">
-                <SwapLabel :active="copyAutoResetOutlook" label="Copy for Outlook (Windows)" active-label="Copied!" />
+                <SwapLabel :active="copyAutoResetOutlook" label="Copy for Outlook (Windows / Mac legacy)" active-label="Copied!" />
               </Button>
               <Button @click="copyHtmlSignature(activeSelector, () => copyAutoResetHtml = true)">
                 <SwapLabel :active="copyAutoResetHtml" label="Copy HTML" active-label="Copied!" />
@@ -300,7 +300,7 @@ async function downloadSignaturePng() {
             @click="copyOutlookSignature"
           >
             <span class="i-ph-microsoft-outlook-logo size-5" aria-hidden="true" />
-            <SwapLabel :active="copyAutoResetOutlook" label="Copy for Outlook (Windows)" active-label="Copied!" />
+            <SwapLabel :active="copyAutoResetOutlook" label="Copy for Outlook (Windows / Mac legacy)" active-label="Copied!" />
           </button>
           <button
             type="button"
