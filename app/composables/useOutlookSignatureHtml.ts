@@ -95,6 +95,25 @@ function cell(content: string, width: number | undefined) {
 }
 
 /**
+ * Text character so iOS Mail doesn't drop an image-only signature on paste.
+ * Zero-width and at the very end of the last cell's paragraph: the images fill
+ * their cells, so any visible character would wrap onto a new line. This keeps
+ * the one-row, one-paragraph structure. Only for "Copy Signature" ("Copy for
+ * Outlook" leaves it out, as Word doesn't need it).
+ */
+const HIDDEN_CHAR = '&#8203;'
+
+function table(cells: string[]) {
+  return '<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">'
+    + `<tbody><tr>${cells.join('')}</tr></tbody></table>`
+}
+
+export interface SignatureHtmlOptions {
+  /** Adds the character iOS needs (HIDDEN_CHAR). Off for "Copy for Outlook". */
+  hiddenText?: boolean
+}
+
+/**
  * Pixel density of the signature images. 2 = sharp on retina screens; the
  * display size comes from the px attributes (image()) and, when Gmail drops
  * them on forward, from the cell widths (cell()). 1 = safe everywhere but
@@ -115,7 +134,7 @@ function oneXFontSize(baseFontSize: number, displayHeight: number) {
   return baseFontSize * displayHeight / Math.ceil(baseFontSize * TEXT_LINE_HEIGHT)
 }
 
-export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>) {
+export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>, { hiddenText = false }: SignatureHtmlOptions = {}) {
   const origin = useRequestURL().origin
   const { textImageUrl } = useTextImageUrl()
 
@@ -175,9 +194,9 @@ export function useOutlookSignatureHtml(fullname: MaybeRefOrGetter<string>, role
     const ny = column('right', NY, [roleValue, `O: ${officePhoneDisplay(NY.phone)}`].filter(Boolean).join(' – '))
       + '<br>'
       + link(COMPANY.handle, columns.value?.right.width, COMPANY.instagramUrl)
+      + (hiddenText ? HIDDEN_CHAR : '')
 
-    return '<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">'
-      + `<tbody><tr>${cell(la, columns.value?.left.width)}${cell(ny, columns.value?.right.width)}</tr></tbody></table>`
+    return table([cell(la, columns.value?.left.width), cell(ny, columns.value?.right.width)])
   })
 }
 
@@ -207,7 +226,7 @@ export function copyRawHtml(html: string, plainText: string) {
  * wide as the image, holding it at 2x with px size attributes. When Gmail
  * forwards the email it drops the image size, but keeps the cell width and adds
  * `max-width:100%`, so the image stays at its display size.
- * No hidden fallback text (unlike the legacy tab's regular copy).
+ * Character for iOS only with `hiddenText` (see HIDDEN_CHAR).
  *
  * The file is kept under MAX_IMAGE_FILE_WIDTH pixels: at a full 2x (620px) Spark
  * blew the forwarded signature up to the message width, as clients treat images
@@ -216,7 +235,7 @@ export function copyRawHtml(html: string, plainText: string) {
  */
 const MAX_IMAGE_FILE_WIDTH = 600
 
-export function useOutlookImageSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>) {
+export function useOutlookImageSignatureHtml(fullname: MaybeRefOrGetter<string>, role: MaybeRefOrGetter<string>, { hiddenText = false }: SignatureHtmlOptions = {}) {
   const origin = useRequestURL().origin
 
   const query = computed(() => new URLSearchParams({ fullname: toValue(fullname), role: toValue(role) }).toString())
@@ -238,9 +257,8 @@ export function useOutlookImageSignatureHtml(fullname: MaybeRefOrGetter<string>,
       height: size.value?.height ?? 0,
       alt: [COMPANY.wordmark, toValue(fullname), toValue(role)].filter(Boolean).join(' – '),
       href: `https://${COMPANY.domain}`,
-    })
+    }) + (hiddenText ? HIDDEN_CHAR : '')
 
-    return '<table class="MsoNormalTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;mso-padding-alt:0pt 0pt 0pt 0pt;">'
-      + `<tbody><tr>${cell(content, size.value?.width)}</tr></tbody></table>`
+    return table([cell(content, size.value?.width)])
   })
 }

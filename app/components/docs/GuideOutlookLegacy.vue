@@ -17,7 +17,7 @@
     <li>Click <b>New Email</b> to check the result.</li>
   </ol>
   <p class="docs-note">
-    Use <b>Copy for Outlook (Windows / Mac legacy)</b>, not <b>Copy Signature</b>: legacy Outlook rewrites pasted signatures,
-    and this version is built to survive it.
+    Use <b>Copy for Outlook (Windows / Mac legacy)</b>: it's the same signature as <b>Copy Signature</b>,
+    without the invisible character only iPhone needs.
   </p>
 </template>

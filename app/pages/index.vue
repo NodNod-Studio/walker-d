@@ -18,16 +18,28 @@ const copyAutoReset = refAutoReset(false, 2000)
 const copyAutoResetHtml = refAutoReset(false, 2000)
 const copyAutoResetOutlook = refAutoReset(false, 2000)
 
+// "Copy Signature" and "Copy for Outlook" put the same Outlook-safe HTML on the
+// clipboard; only "Copy Signature" adds the zero-width character iOS Mail needs
+// to keep an image-only signature on paste.
+const signatureHtml = useOutlookSignatureHtml(() => values.fullname, () => values.role, { hiddenText: true })
+const signatureImageHtml = useOutlookImageSignatureHtml(() => values.fullname, () => values.role, { hiddenText: true })
 const outlookHtml = useOutlookSignatureHtml(() => values.fullname, () => values.role)
 const outlookImageHtml = useOutlookImageSignatureHtml(() => values.fullname, () => values.role)
 
-function copyOutlookSignature() {
+function copySignatureHtml(html: string, onCopied: () => void) {
   const plainText = [COMPANY.wordmark, [values.fullname, values.role].filter(Boolean).join(' – ')]
     .filter(Boolean)
     .join('\n')
-  const html = displayedTab.value === 'image' ? outlookImageHtml.value : outlookHtml.value
   if (copyRawHtml(html, plainText))
-    copyAutoResetOutlook.value = true
+    onCopied()
+}
+
+function copySignature() {
+  copySignatureHtml(displayedTab.value === 'image' ? signatureImageHtml.value : signatureHtml.value, () => copyAutoReset.value = true)
+}
+
+function copyOutlookSignature() {
+  copySignatureHtml(displayedTab.value === 'image' ? outlookImageHtml.value : outlookHtml.value, () => copyAutoResetOutlook.value = true)
 }
 
 const tabs = [
@@ -71,29 +83,6 @@ onKeyStroke('Escape', () => {
 function closeMoreAfter(action: () => unknown) {
   action()
   moreOpen.value = false
-}
-
-async function copySignature(selector: string, onCopied: () => void) {
-  const el = document.querySelector(selector) as HTMLElement
-  if (!el)
-    return
-  const range = document.createRange()
-  range.selectNodeContents(el)
-  const sel = window.getSelection()
-  if (!sel)
-    return
-  sel.removeAllRanges()
-  sel.addRange(range)
-
-  try {
-    document.execCommand('copy')
-    onCopied()
-  }
-  catch (err) {
-    console.error('Failed to copy text: ', err)
-  }
-
-  sel.removeAllRanges()
 }
 
 const head = `<!doctype html>
@@ -237,7 +226,7 @@ async function downloadSignaturePng() {
         <div :key="displayedTab" class="mt-6">
           <!-- Mobile and tablet (below lg): one primary action, the rest in the "More" sheet -->
           <div class="flex gap-2 lg:hidden">
-            <Button theme="primary" size="lg" class="flex-1" @click="copySignature(activeSelector, () => copyAutoReset = true)">
+            <Button theme="primary" size="lg" class="flex-1" @click="copySignature">
               <SwapLabel :active="copyAutoReset" label="Copy Signature" active-label="Copied!" />
             </Button>
             <Button size="lg" class="!px-4.5" aria-label="More actions" :aria-expanded="moreOpen" @click="moreOpen = true">
@@ -251,7 +240,7 @@ async function downloadSignaturePng() {
             </Button>
 
             <div class="flex flex-wrap gap-2">
-              <Button @click="copySignature(activeSelector, () => copyAutoReset = true)">
+              <Button @click="copySignature">
                 <SwapLabel :active="copyAutoReset" label="Copy Signature" active-label="Copied!" />
               </Button>
               <Button @click="copyOutlookSignature">
